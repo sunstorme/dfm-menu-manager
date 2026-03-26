@@ -91,11 +91,11 @@ ApplicationWindow {
     
     // 窗口状态管理
     Component.onCompleted: {
-        // WindowManager.restoreState(root)
+        WindowManager.restoreState(root, root)
     }
     
     Component.onDestruction: {
-        WindowManager.saveState(root)
+        WindowManager.saveState(root, filePanelWidth, menuEditorWidth, propertyPanelWidth)
     }
     
     // 主布局 - 使用SplitView实现可拖动分隔器
@@ -668,12 +668,10 @@ ApplicationWindow {
                     }
                 }
                 
-                // 未选中任何项时的提示（在ScrollView底部）
+                // 未选中任何项时的提示
                 Text {
                     visible: currentItem === null
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.bottom: parent.bottom
-                    anchors.bottomMargin: Styles.Style.padding * 2
+                    anchors.centerIn: parent
                     text: qsTr("请选择一个菜单项")
                     font.pixelSize: 14
                     color: Styles.Style.secondaryTextColor

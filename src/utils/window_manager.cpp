@@ -14,16 +14,21 @@ WindowManager* WindowManager::instance() {
     return manager;
 }
 
-void WindowManager::saveState(QQuickWindow *window) {
+void WindowManager::saveState(QQuickWindow *window, qreal filePanelWidth, qreal menuEditorWidth, qreal propertyPanelWidth) {
     if (!window) {
         return;
     }
     
     m_settings.setValue("window/geometry", window->geometry());
-    m_settings.setValue("window/visibility", window->visibility());
+    
+    m_settings.setValue("layout/filePanelWidth", filePanelWidth);
+    m_settings.setValue("layout/menuEditorWidth", menuEditorWidth);
+    m_settings.setValue("layout/propertyPanelWidth", propertyPanelWidth);
+    
+    m_settings.sync();
 }
 
-void WindowManager::restoreState(QQuickWindow *window) {
+void WindowManager::restoreState(QQuickWindow *window, QObject *splitView) {
     if (!window) {
         return;
     }
@@ -33,8 +38,13 @@ void WindowManager::restoreState(QQuickWindow *window) {
         window->setGeometry(geometry);
     }
     
-    QWindow::Visibility visibility = static_cast<QWindow::Visibility>(
-        m_settings.value("window/visibility", QWindow::Windowed).toInt()
-    );
-    window->setVisibility(visibility);
+    if (splitView) {
+        qreal filePanelWidth = m_settings.value("layout/filePanelWidth", 350).toReal();
+        qreal menuEditorWidth = m_settings.value("layout/menuEditorWidth", 630).toReal();
+        qreal propertyPanelWidth = m_settings.value("layout/propertyPanelWidth", 420).toReal();
+        
+        splitView->setProperty("filePanelWidth", filePanelWidth);
+        splitView->setProperty("menuEditorWidth", menuEditorWidth);
+        splitView->setProperty("propertyPanelWidth", propertyPanelWidth);
+    }
 }

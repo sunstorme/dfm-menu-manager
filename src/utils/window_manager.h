@@ -16,8 +16,8 @@ class WindowManager : public QObject {
 public:
     static WindowManager* instance();
     
-    Q_INVOKABLE void saveState(QQuickWindow *window);
-    Q_INVOKABLE void restoreState(QQuickWindow *window);
+    Q_INVOKABLE void saveState(QQuickWindow *window, qreal filePanelWidth, qreal menuEditorWidth, qreal propertyPanelWidth);
+    Q_INVOKABLE void restoreState(QQuickWindow *window, QObject *splitView);
     
 private:
     explicit WindowManager(QObject *parent = nullptr);
