@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "menu_file_model.h"
 #include "../utils/file_utils.h"
 #include <QDir>

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "menu_manager.h"
 #include "file_watcher.h"
 #include "../utils/file_utils.h"

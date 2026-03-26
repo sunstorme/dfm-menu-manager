@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef MENUFILEMODEL_H
 #define MENUFILEMODEL_H
 

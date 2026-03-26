@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 #ifndef CONFIGPARSER_H
 #define CONFIGPARSER_H
 
