@@ -1,0 +1,14 @@
+[Desktop Entry]
+Categories=Settings;System;Qt;
+Exec=dfm-menu-manager
+Icon=dfm-menu-manager
+Name=DFM Menu Manager
+Name[zh_CN]=DFM 右键菜单管理器
+Comment=Manage DFM right-click context menu
+Comment[zh_CN]=管理 DFM 右键上下文菜单
+StartupNotify=true
+Terminal=false
+Type=Application
+Version=1.0
+Keywords=file;menu;context;settings;manager;
+Keywords[zh_CN]=文件;菜单;上下文;设置;管理器;

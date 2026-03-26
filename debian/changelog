@@ -1,0 +1,11 @@
+dfm-menu-manager (1.0.0-1) unstable; urgency=medium
+
+  * Initial release
+  * Implement basic menu configuration management
+  * Add menu tree view with expand/collapse support
+  * Implement property editor for menu items
+  * Add search and filter functionality
+  * Support both user and system configuration files
+  * Add window state and layout persistence
+
+ -- zhanghongyuan <zhanghongyuan@uniontech.com>  Fri, 26 Mar 2026 00:00:00 +0800

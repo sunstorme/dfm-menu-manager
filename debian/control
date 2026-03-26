@@ -1,0 +1,30 @@
+Source: dfm-menu-manager
+Section: utils
+Priority: optional
+Maintainer: zhanghongyuan <zhanghongyuan@uniontech.com>
+Build-Depends: cmake (>= 3.10),
+               debhelper-compat (= 13),
+               qt6-base-dev,
+               qt6-declarative-dev,
+               qt6-tools-dev,
+Standards-Version: 4.6.0
+Homepage: https://github.com/add-uos/dfm-menu-manager
+Vcs-Git: https://github.com/add-uos/dfm-menu-manager.git
+Vcs-Browser: https://github.com/add-uos/dfm-menu-manager
+
+Package: dfm-menu-manager
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, qml6-module-qtquick-controls, qml6-module-qtquick-layouts
+Description: DFM right-click menu manager
+ DFM Menu Manager is a graphical tool for managing the right-click
+ context menu in the Deepin File Manager (DFM). It provides an easy-to-use
+ interface for:
+  .
+  * Viewing and editing menu configuration files
+  * Managing menu items and their properties
+  * Configuring menu types and supported file suffixes
+  * Setting menu item positions and visibility
+  * Supporting both user and system-wide configurations
+  .
+  This tool is particularly useful for customizing the file manager's
+  context menu to better suit your workflow and preferences.

@@ -1,0 +1,114 @@
+# Building Debian Packages for dfm-menu-manager
+
+This document describes how to build Debian packages for the dfm-menu-manager project.
+
+## Prerequisites
+
+Install the required build dependencies:
+
+```bash
+sudo apt-get install \
+    cmake \
+    debhelper \
+    qt6-base-dev \
+    qt6-declarative-dev \
+    qt6-tools-dev \
+    qtbase6-dev-tools \
+    qml6-module-qtquick-controls \
+    qml6-module-qtquick-layouts
+```
+
+## Building the Package
+
+From the source root directory:
+
+```bash
+# Build the Debian package
+dpkg-buildpackage -us -uc
+
+# Or with more verbose output
+dpkg-buildpackage -us -uc -nc -b
+
+# The resulting .deb file will be in the parent directory
+```
+
+## Installing the Package
+
+```bash
+sudo dpkg -i ../dfm-menu-manager_*.deb
+```
+
+## Testing the Package
+
+After installation, you can run the application:
+
+```bash
+dfm-menu-manager
+```
+
+Or from the application menu:
+- Applications → System Tools → DFM Menu Manager
+- 应用程序 → 系统工具 → DFM 右键菜单管理器
+
+## Package Contents
+
+The Debian package includes:
+
+- `/usr/bin/dfm-menu-manager` - Main executable
+- `/usr/share/dfm-menu-manager/` - Application resources
+- `/usr/share/doc/dfm-menu-manager/` - Documentation
+- `/usr/share/icons/hicolor/scalable/apps/dfm-menu-manager.svg` - Application icon
+- `/usr/share/applications/dfm-menu-manager.desktop` - Desktop entry
+
+## Configuration Files
+
+The application stores configuration in:
+
+- `~/.config/deepin/dfm-menu-manager.conf` - User settings (window state, panel widths)
+- `~/.config/deepin/dfm-menu/` - User menu configurations
+- `/etc/xdg/deepin/dfm-menu/` - System-wide menu configurations
+
+## Troubleshooting
+
+### Build Failures
+
+If the build fails, ensure all dependencies are installed:
+
+```bash
+sudo apt-get build-dep .
+```
+
+### Missing Dependencies
+
+If you get dependency errors when installing:
+
+```bash
+sudo apt-get -f install
+```
+
+### Clean Build
+
+To clean the build directory:
+
+```bash
+dpkg-buildpackage -us -uc -nc -b
+```
+
+The `-nc` flag prevents cleaning, and `-b` builds only binary packages.
+
+## Development
+
+For development builds without creating a Debian package:
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+```
+
+## More Information
+
+- Project Homepage: https://github.com/add-uos/dfm-menu-manager
+- Bug Reports: https://github.com/add-uos/dfm-menu-manager/issues
+- Debian Policy: https://www.debian.org/doc/debian-policy/
