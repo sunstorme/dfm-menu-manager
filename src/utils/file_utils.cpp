@@ -1,0 +1,19 @@
+#include "file_utils.h"
+#include <QDir>
+#include <QStandardPaths>
+
+QString FileUtils::getUserConfigDir() {
+    return QDir::homePath() + "/.local/share/deepin/dde-file-manager/context-menus";
+}
+
+QString FileUtils::getSystemConfigDir() {
+    return "/usr/share/applications/context-menus";
+}
+
+bool FileUtils::ensureDirExists(const QString &path) {
+    QDir dir(path);
+    if (!dir.exists()) {
+        return dir.mkpath(path);
+    }
+    return true;
+}

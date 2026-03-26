@@ -1,0 +1,96 @@
+#include <QGuiApplication>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QIcon>
+#include <QTranslator>
+#include <QLocale>
+#include <QDebug>
+#include "core/menu_manager.h"
+#include "models/menu_tree_model.h"
+#include "models/menu_file_model.h"
+#include "utils/window_manager.h"
+
+int main(int argc, char *argv[])
+{
+    qDebug() << "=== DFM Menu Manager Starting ===";
+    
+    // 设置高DPI属性(必须在创建QGuiApplication之前)
+    qDebug() << "Setting High DPI attributes...";
+    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
+    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+    QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+    
+    qDebug() << "Creating QGuiApplication...";
+    QGuiApplication app(argc, argv);
+    app.setApplicationName("dfm-menu-manager");
+    app.setApplicationVersion("1.0.0");
+    app.setOrganizationName("deepin");
+    qDebug() << "QGuiApplication created successfully";
+    
+    // 加载翻译
+    qDebug() << "Loading translations...";
+    QTranslator translator;
+    const QStringList uiLanguages = QLocale::system().uiLanguages();
+    for (const QString &locale : uiLanguages) {
+        const QString baseName = "dfm-menu-manager_" + QLocale(locale).name();
+        if (translator.load(":/i18n/" + baseName)) {
+            app.installTranslator(&translator);
+            qDebug() << "Loaded translation:" << baseName;
+            break;
+        }
+    }
+    
+    // 注册QML类型
+    qDebug() << "Registering QML types...";
+    qmlRegisterType<MenuTreeModel>("DFMMenu", 1, 0, "MenuTreeModel");
+    qmlRegisterType<MenuFileModel>("DFMMenu", 1, 0, "MenuFileModel");
+    qmlRegisterType<MenuManager>("DFMMenu", 1, 0, "MenuManager");
+    qmlRegisterSingletonType<WindowManager>("DFMMenu", 1, 0, "WindowManager",
+        [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
+            Q_UNUSED(scriptEngine)
+            WindowManager* instance = WindowManager::instance();
+            // 设置对象所有权为 C++，防止 QML 引擎删除它
+            QQmlEngine::setObjectOwnership(instance, QQmlEngine::CppOwnership);
+            return instance;
+        }
+    );
+    qDebug() << "QML types registered";
+    
+    // 创建管理器
+    qDebug() << "Creating MenuManager...";
+    MenuManager menuManager;
+    qDebug() << "Loading configurations...";
+    menuManager.loadConfigurations();
+    qDebug() << "Configurations loaded";
+    
+    // QML引擎
+    qDebug() << "Creating QML engine...";
+    QQmlApplicationEngine engine;
+    
+    // 添加qmldir路径
+    qDebug() << "Adding import paths...";
+    engine.addImportPath(":/qml/styles");
+    
+    // 暴露管理器到QML
+    qDebug() << "Setting context properties...";
+    engine.rootContext()->setContextProperty("menuManager", &menuManager);
+    
+    // 加载主QML文件
+    const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
+    qDebug() << "Loading QML file:" << url;
+    QObject::connect(&engine, &QQmlApplicationEngine::objectCreated,
+                     &app, [url](QObject *obj, const QUrl &objUrl) {
+        qDebug() << "QML object created:" << obj << "URL:" << objUrl;
+        if (!obj && url == objUrl) {
+            qWarning() << "Failed to create QML object, exiting...";
+            QCoreApplication::exit(-1);
+        }
+    }, Qt::QueuedConnection);
+    
+    engine.load(url);
+    qDebug() << "QML load initiated";
+    
+    qDebug() << "=== Entering event loop ===";
+    return app.exec();
+}
+
