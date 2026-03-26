@@ -3,14 +3,32 @@
 
 MenuTreeModel::MenuTreeModel(QObject *parent)
     : QAbstractItemModel(parent) {
-    m_rootItem = new MenuActionItem();
+    m_rootItem = new TreeItem();
     m_rootItem->isRoot = true;
     m_rootItem->level = 0;
     m_rootItem->id = "root";
+    m_rootItem->parentItem = nullptr;
+    m_allItems.append(m_rootItem);
 }
 
 MenuTreeModel::~MenuTreeModel() {
-    delete m_rootItem;
+    clearTree();
+}
+
+void MenuTreeModel::clearTree() {
+    qDeleteAll(m_allItems);
+    m_allItems.clear();
+    m_rootItem = nullptr;
+}
+
+MenuTreeModel::TreeItem* MenuTreeModel::getItem(const QModelIndex &idx) const {
+    if (idx.isValid()) {
+        TreeItem *item = static_cast<TreeItem*>(idx.internalPointer());
+        if (item) {
+            return item;
+        }
+    }
+    return m_rootItem;
 }
 
 QModelIndex MenuTreeModel::index(int row, int column, 
@@ -19,22 +37,17 @@ QModelIndex MenuTreeModel::index(int row, int column,
         return QModelIndex();
     }
     
-    MenuActionItem *parentItem = parent.isValid() 
-        ? static_cast<MenuActionItem*>(parent.internalPointer())
-        : m_rootItem;
-    
-    if (!parentItem || row >= parentItem->childActions.size()) {
+    TreeItem *parentItem = getItem(parent);
+    if (row >= parentItem->subItems.size()) {
         return QModelIndex();
     }
     
-    QString childId = parentItem->childActions[row];
-    MenuActionItem *childItem = m_itemsMap.value(childId);
-    
-    if (!childItem) {
-        return QModelIndex();
+    TreeItem *childItem = parentItem->subItems.at(row);
+    if (childItem) {
+        return createIndex(row, column, childItem);
     }
     
-    return createIndex(row, column, childItem);
+    return QModelIndex();
 }
 
 QModelIndex MenuTreeModel::parent(const QModelIndex &child) const {
@@ -42,32 +55,19 @@ QModelIndex MenuTreeModel::parent(const QModelIndex &child) const {
         return QModelIndex();
     }
     
-    MenuActionItem *childItem = static_cast<MenuActionItem*>(child.internalPointer());
-    if (!childItem || childItem->level <= 1) {
+    TreeItem *childItem = getItem(child);
+    TreeItem *parentItem = childItem->parentItem;
+    
+    if (!parentItem || parentItem == m_rootItem) {
         return QModelIndex();
     }
     
-    // 查找父项
-    for (auto &item : m_items) {
-        if (item.childActions.contains(childItem->id)) {
-            int row = item.childActions.indexOf(childItem->id);
-            return createIndex(row, 0, &item);
-        }
-    }
-    
-    return QModelIndex();
+    return createIndex(parentItem->row, 0, parentItem);
 }
 
 int MenuTreeModel::rowCount(const QModelIndex &parent) const {
-    MenuActionItem *parentItem = parent.isValid()
-        ? static_cast<MenuActionItem*>(parent.internalPointer())
-        : m_rootItem;
-    
-    if (!parentItem) {
-        return 0;
-    }
-    
-    return parentItem->childActions.size();
+    TreeItem *parentItem = getItem(parent);
+    return parentItem->subItems.size();
 }
 
 int MenuTreeModel::columnCount(const QModelIndex &parent) const {
@@ -80,7 +80,7 @@ QVariant MenuTreeModel::data(const QModelIndex &index, int role) const {
         return QVariant();
     }
     
-    MenuActionItem *item = static_cast<MenuActionItem*>(index.internalPointer());
+    TreeItem *item = getItem(index);
     if (!item) {
         return QVariant();
     }
@@ -95,7 +95,7 @@ QVariant MenuTreeModel::data(const QModelIndex &index, int role) const {
     case LevelRole:
         return item->level;
     case HasChildrenRole:
-        return !item->childActions.isEmpty();
+        return !item->subItems.isEmpty();
     case IsEditableRole:
         return !item->isSystem;
     case IsSystemRole:
@@ -108,6 +108,8 @@ QVariant MenuTreeModel::data(const QModelIndex &index, int role) const {
         return item->supportSuffix;
     case PositionNumberRole:
         return item->positionNumber;
+    case Qt::DisplayRole:
+        return item->nameLocal.isEmpty() ? item->name : item->nameLocal;
     default:
         return QVariant();
     }
@@ -135,7 +137,7 @@ void MenuTreeModel::addItem(const QModelIndex &parent, const QString &name) {
         return;
     }
     
-    MenuActionItem *parentItem = static_cast<MenuActionItem*>(parent.internalPointer());
+    TreeItem *parentItem = getItem(parent);
     
     // 检查层级限制
     if (parentItem->level >= 3) {
@@ -143,22 +145,23 @@ void MenuTreeModel::addItem(const QModelIndex &parent, const QString &name) {
         return;
     }
     
-    beginInsertRows(parent, parentItem->childActions.size(), 
-                   parentItem->childActions.size());
+    beginInsertRows(parent, parentItem->subItems.size(), 
+                   parentItem->subItems.size());
     
     // 创建新菜单项
-    MenuActionItem newItem;
-    newItem.id = generateUniqueId();
-    newItem.name = name;
-    newItem.nameLocal = name;
-    newItem.level = parentItem->level + 1;
-    newItem.positionNumber = parentItem->childActions.size() + 1;
-    newItem.configFile = parentItem->configFile;
-    newItem.isSystem = parentItem->isSystem;
+    TreeItem *newItem = new TreeItem();
+    newItem->id = generateUniqueId();
+    newItem->name = name;
+    newItem->nameLocal = name;
+    newItem->level = parentItem->level + 1;
+    newItem->positionNumber = parentItem->subItems.size() + 1;
+    newItem->configFile = parentItem->configFile;
+    newItem->isSystem = parentItem->isSystem;
+    newItem->parentItem = parentItem;
+    newItem->row = parentItem->subItems.size();
     
-    m_items.append(newItem);
-    m_itemsMap[newItem.id] = &m_items.last();
-    parentItem->childActions.append(newItem.id);
+    parentItem->subItems.append(newItem);
+    m_allItems.append(newItem);
     
     endInsertRows();
 }
@@ -168,16 +171,14 @@ void MenuTreeModel::removeItem(const QModelIndex &index) {
         return;
     }
     
-    MenuActionItem *item = static_cast<MenuActionItem*>(index.internalPointer());
+    TreeItem *item = getItem(index);
     if (item->isSystem) {
         emit errorOccurred("系统配置不能删除");
         return;
     }
     
     QModelIndex parent = index.parent();
-    MenuActionItem *parentItem = parent.isValid()
-        ? static_cast<MenuActionItem*>(parent.internalPointer())
-        : m_rootItem;
+    TreeItem *parentItem = getItem(parent);
     
     if (!parentItem) {
         return;
@@ -187,9 +188,14 @@ void MenuTreeModel::removeItem(const QModelIndex &index) {
     
     beginRemoveRows(parent, row, row);
     
-    parentItem->childActions.removeAt(row);
-    m_itemsMap.remove(item->id);
-    m_items.removeAll(*item);
+    parentItem->subItems.removeAt(row);
+    m_allItems.removeAll(item);
+    delete item;
+    
+    // 更新后续节点的row
+    for (int i = row; i < parentItem->subItems.size(); ++i) {
+        parentItem->subItems[i]->row = i;
+    }
     
     endRemoveRows();
 }
@@ -200,9 +206,7 @@ void MenuTreeModel::moveItem(const QModelIndex &index, int direction) {
     }
     
     QModelIndex parent = index.parent();
-    MenuActionItem *parentItem = parent.isValid()
-        ? static_cast<MenuActionItem*>(parent.internalPointer())
-        : m_rootItem;
+    TreeItem *parentItem = getItem(parent);
     
     if (!parentItem) {
         return;
@@ -211,14 +215,18 @@ void MenuTreeModel::moveItem(const QModelIndex &index, int direction) {
     int row = index.row();
     int newRow = row + direction;
     
-    if (newRow < 0 || newRow >= parentItem->childActions.size()) {
+    if (newRow < 0 || newRow >= parentItem->subItems.size()) {
         return;
     }
     
     // 交换位置
     beginMoveRows(parent, row, row, parent, direction > 0 ? newRow + 1 : newRow);
     
-    parentItem->childActions.swapItemsAt(row, newRow);
+    parentItem->subItems.swapItemsAt(row, newRow);
+    
+    // 更新row
+    parentItem->subItems[row]->row = row;
+    parentItem->subItems[newRow]->row = newRow;
     
     endMoveRows();
 }
@@ -229,7 +237,7 @@ void MenuTreeModel::updateItem(const QModelIndex &index, const QString &role,
         return;
     }
     
-    MenuActionItem *item = static_cast<MenuActionItem*>(index.internalPointer());
+    TreeItem *item = getItem(index);
     if (!item) {
         return;
     }
@@ -251,55 +259,149 @@ void MenuTreeModel::updateItem(const QModelIndex &index, const QString &role,
     emit dataChanged(index, index);
 }
 
+void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
+    // 使用 BFS 从根节点开始构建树
+    QSet<QString> visited;
+    QList<QPair<TreeItem*, QStringList>> queue;  // (父节点, 子节点ID列表)
+    
+    // 创建根节点
+    if (data.actionMap.contains("root")) {
+        const MenuActionItem *rootAction = data.actionMap["root"];
+        m_rootItem->id = rootAction->id;
+        m_rootItem->name = rootAction->name;
+        m_rootItem->nameLocal = rootAction->nameLocal;
+        m_rootItem->comment = rootAction->comment;
+        m_rootItem->commentLocal = rootAction->commentLocal;
+        m_rootItem->level = 0;
+        m_rootItem->isRoot = true;
+        m_rootItem->configFile = rootAction->configFile;
+        m_rootItem->isSystem = rootAction->isSystem;
+        m_rootItem->childActions = rootAction->childActions;
+        
+        queue.append(qMakePair(m_rootItem, rootAction->childActions));
+        visited.insert("root");
+    }
+    
+    while (!queue.isEmpty()) {
+        auto pair = queue.takeFirst();
+        TreeItem *parentItem = pair.first;
+        const QStringList &childIds = pair.second;
+        
+        for (int i = 0; i < childIds.size(); ++i) {
+            const QString &childId = childIds[i];
+            if (data.actionMap.contains(childId) && !visited.contains(childId)) {
+                const MenuActionItem *childAction = data.actionMap[childId];
+                
+                // 创建新节点
+                TreeItem *childItem = new TreeItem();
+                childItem->id = childAction->id;
+                childItem->name = childAction->name;
+                childItem->nameLocal = childAction->nameLocal;
+                childItem->comment = childAction->comment;
+                childItem->commentLocal = childAction->commentLocal;
+                childItem->level = parentItem->level + 1;
+                childItem->isRoot = childAction->isRoot;
+                childItem->configFile = childAction->configFile;
+                childItem->isSystem = childAction->isSystem;
+                childItem->positionNumber = childAction->positionNumber;
+                childItem->execCommand = childAction->execCommand;
+                childItem->menuTypes = childAction->menuTypes;
+                childItem->supportSuffix = childAction->supportSuffix;
+                childItem->childActions = childAction->childActions;
+                childItem->parentItem = parentItem;
+                childItem->row = i;
+                
+                parentItem->subItems.append(childItem);
+                m_allItems.append(childItem);
+                
+                // 将子节点的子项添加到队列
+                if (!childAction->childActions.isEmpty()) {
+                    queue.append(qMakePair(childItem, childAction->childActions));
+                }
+                
+                visited.insert(childId);
+            }
+        }
+    }
+    
+    qDebug() << "buildTree: Built tree with" << m_allItems.size() << "items";
+}
+
 void MenuTreeModel::setConfigData(const ConfigParser::ConfigData &data) {
     beginResetModel();
     
-    m_items = data.actions;
-    m_itemsMap.clear();
-    for (auto &item : m_items) {
-        m_itemsMap[item.id] = &item;
-    }
+    // 清空旧数据
+    clearTree();
     
-    if (data.actionMap.contains("root")) {
-        m_rootItem = data.actionMap["root"];
-    }
+    // 创建新的根节点
+    m_rootItem = new TreeItem();
+    m_rootItem->isRoot = true;
+    m_rootItem->level = 0;
+    m_rootItem->id = "root";
+    m_rootItem->parentItem = nullptr;
+    m_allItems.append(m_rootItem);
+    
+    // 构建树
+    buildTree(data);
     
     endResetModel();
 }
 
-MenuActionItem* MenuTreeModel::getItem(const QModelIndex &index) const {
-    if (!index.isValid()) {
-        return nullptr;
-    }
-    
-    return static_cast<MenuActionItem*>(index.internalPointer());
-}
-
 QModelIndex MenuTreeModel::getIndex(const QString &id) {
-    if (!m_itemsMap.contains(id)) {
-        return QModelIndex();
-    }
+    // 使用 BFS 查找节点
+    QList<TreeItem*> queue;
+    queue.append(m_rootItem);
     
-    MenuActionItem *item = m_itemsMap[id];
-    if (!item) {
-        return QModelIndex();
-    }
-    
-    // 查找父项
-    for (auto &parentItem : m_items) {
-        if (parentItem.childActions.contains(id)) {
-            int row = parentItem.childActions.indexOf(id);
-            return createIndex(row, 0, item);
+    while (!queue.isEmpty()) {
+        TreeItem *item = queue.takeFirst();
+        if (item->id == id) {
+            if (item->parentItem) {
+                return createIndex(item->row, 0, item);
+            }
+            return QModelIndex();
+        }
+        
+        for (TreeItem *child : item->subItems) {
+            queue.append(child);
         }
     }
     
-    // 如果是根项的子项
-    if (m_rootItem && m_rootItem->childActions.contains(id)) {
-        int row = m_rootItem->childActions.indexOf(id);
-        return createIndex(row, 0, item);
+    return QModelIndex();
+}
+
+QVariantList MenuTreeModel::getAllItems() const {
+    QVariantList result;
+    QList<TreeItem*> queue;
+    
+    if (m_rootItem) {
+        queue.append(m_rootItem);
     }
     
-    return QModelIndex();
+    while (!queue.isEmpty()) {
+        TreeItem* item = queue.takeFirst();
+        
+        QVariantMap itemMap;
+        itemMap["id"] = item->id;
+        itemMap["name"] = item->name;
+        itemMap["nameLocal"] = item->nameLocal.isEmpty() ? item->name : item->nameLocal;
+        itemMap["level"] = item->level;
+        itemMap["hasChildren"] = !item->subItems.isEmpty();
+        itemMap["isEditable"] = !item->isSystem;
+        itemMap["isSystem"] = item->isSystem;
+        itemMap["execCommand"] = item->execCommand;
+        itemMap["menuTypes"] = item->menuTypes;
+        itemMap["supportSuffix"] = item->supportSuffix;
+        itemMap["positionNumber"] = item->positionNumber;
+        
+        result.append(itemMap);
+        
+        for (TreeItem *child : item->subItems) {
+            queue.append(child);
+        }
+    }
+    
+    qDebug() << "MenuTreeModel::getAllItems() returned" << result.size() << "items";
+    return result;
 }
 
 QString MenuTreeModel::generateUniqueId() {

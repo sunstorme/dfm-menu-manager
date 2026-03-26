@@ -51,18 +51,46 @@ public:
     
     // 模型数据
     void setConfigData(const ConfigParser::ConfigData &data);
-    MenuActionItem* getItem(const QModelIndex &index) const;
     QModelIndex getIndex(const QString &id);
+    
+    // 获取所有菜单项（扁平化，用于显示）
+    Q_INVOKABLE QVariantList getAllItems() const;
     
 signals:
     void errorOccurred(const QString &message);
     
 private:
-    MenuActionItem *m_rootItem;
-    QList<MenuActionItem> m_items;
-    QMap<QString, MenuActionItem*> m_itemsMap;
+    struct TreeItem {
+        QString id;
+        QString name;
+        QString nameLocal;
+        QString comment;
+        QString commentLocal;
+        QStringList menuTypes;
+        QStringList supportSuffix;
+        int positionNumber;
+        QString execCommand;
+        QStringList childActions;  // 子节点ID列表
+        bool isRoot;
+        int level;
+        QString configFile;
+        bool isSystem;
+        int row;  // 在父节点中的位置
+        
+        // 用于构建树形结构的指针
+        TreeItem *parentItem;
+        QList<TreeItem*> subItems;
+    };
     
+    TreeItem *m_rootItem;
+    QList<TreeItem*> m_allItems;  // 所有节点，用于内存管理
+    
+    TreeItem *getItem(const QModelIndex &idx) const;
     QString generateUniqueId();
+    
+    // 从 ConfigData 构建 TreeItem 树
+    void buildTree(const ConfigParser::ConfigData &data);
+    void clearTree();
 };
 
 #endif // MENUTREEMODEL_H

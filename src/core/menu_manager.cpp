@@ -3,6 +3,9 @@
 #include "../utils/file_utils.h"
 #include <QDebug>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 MenuManager::MenuManager(QObject *parent)
     : QObject(parent)
@@ -96,9 +99,14 @@ bool MenuManager::deleteConfig(const QString &filePath) {
 }
 
 MenuTreeModel* MenuManager::getMenuModel(const QString &configFile) {
+    qDebug() << "MenuManager::getMenuModel called with:" << configFile;
     if (!m_models.contains(configFile)) {
+        qDebug() << "Creating new model for:" << configFile;
         // 解析配置文件
         ConfigParser::ConfigData data = m_parser.parseFile(configFile);
+        
+        qDebug() << "Config data isValid:" << data.isValid();
+        qDebug() << "Config data actions count:" << data.actions.size();
         
         if (!data.isValid()) {
             emit errorOccurred("解析配置文件失败");
@@ -109,12 +117,14 @@ MenuTreeModel* MenuManager::getMenuModel(const QString &configFile) {
         MenuTreeModel *model = new MenuTreeModel(this);
         model->setConfigData(data);
         m_models[configFile] = model;
+        qDebug() << "Model created, rowCount:" << model->rowCount();
     }
     
     return m_models[configFile];
 }
 
 void MenuManager::setCurrentConfig(const QString &configFile) {
+    qDebug() << "MenuManager::setCurrentConfig called with:" << configFile;
     m_currentConfig = configFile;
     emit configLoaded(configFile);
 }
@@ -135,4 +145,84 @@ QStringList MenuManager::getValidationErrors() {
 
 MenuFileModel* MenuManager::getFileModel() {
     return m_fileModel;
+}
+
+QString MenuManager::exportToJson(const QString &configFile) {
+    // 解析配置文件
+    ConfigParser::ConfigData data = m_parser.parseFile(configFile);
+    
+    if (!data.isValid()) {
+        qWarning() << "Failed to parse config file:" << configFile;
+        return "{}";
+    }
+    
+    // 构建 JSON 对象
+    QJsonObject rootObj;
+    rootObj["version"] = data.version;
+    rootObj["comment"] = data.comment;
+    rootObj["commentLocal"] = data.commentLocal;
+    rootObj["rootActionId"] = data.rootActionId;
+    
+    // 构建菜单项数组
+    QJsonArray actionsArray;
+    
+    // 使用 BFS 遍历所有菜单项
+    QSet<QString> visited;
+    QList<const MenuActionItem*> queue;
+    
+    // 从根节点开始
+    if (data.actionMap.contains("root")) {
+        queue.append(data.actionMap["root"]);
+        visited.insert("root");
+    }
+    
+    while (!queue.isEmpty()) {
+        const MenuActionItem* item = queue.takeFirst();
+        
+        // 将当前项转换为 JSON 对象
+        QJsonObject itemObj;
+        itemObj["id"] = item->id;
+        itemObj["name"] = item->name;
+        itemObj["nameLocal"] = item->nameLocal.isEmpty() ? item->name : item->nameLocal;
+        itemObj["comment"] = item->comment;
+        itemObj["commentLocal"] = item->commentLocal;
+        itemObj["level"] = item->level;
+        itemObj["isRoot"] = item->isRoot;
+        itemObj["isSystem"] = item->isSystem;
+        itemObj["positionNumber"] = item->positionNumber;
+        itemObj["execCommand"] = item->execCommand;
+        itemObj["configFile"] = item->configFile;
+        
+        // 添加数组字段
+        QJsonArray childActionsArray = QJsonArray::fromStringList(item->childActions);
+        itemObj["childActions"] = childActionsArray;
+        
+        QJsonArray menuTypesArray = QJsonArray::fromStringList(item->menuTypes);
+        itemObj["menuTypes"] = menuTypesArray;
+        
+        QJsonArray supportSuffixArray = QJsonArray::fromStringList(item->supportSuffix);
+        itemObj["supportSuffix"] = supportSuffixArray;
+        
+        actionsArray.append(itemObj);
+        
+        // 将子项添加到队列
+        for (const QString &childId : item->childActions) {
+            if (data.actionMap.contains(childId) && !visited.contains(childId)) {
+                queue.append(data.actionMap[childId]);
+                visited.insert(childId);
+            }
+        }
+    }
+    
+    rootObj["actions"] = actionsArray;
+    rootObj["totalActions"] = actionsArray.size();
+    
+    // 转换为 JSON 字符串
+    QJsonDocument doc(rootObj);
+    QString jsonString = QString::fromUtf8(doc.toJson(QJsonDocument::Indented));
+    
+    qDebug() << "Exported config to JSON:" << configFile;
+    qDebug() << "Total actions:" << actionsArray.size();
+    
+    return jsonString;
 }

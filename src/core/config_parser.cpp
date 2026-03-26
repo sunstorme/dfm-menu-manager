@@ -184,12 +184,40 @@ QStringList ConfigParser::getValidationErrors(const ConfigData &data) {
 }
 
 void ConfigParser::buildTreeStructure(ConfigData &data) {
-    for (auto &action : data.actions) {
-        calculateLevel(action, data);
+    // 使用 BFS 从根节点开始计算层级
+    QSet<QString> visited;
+    QList<MenuActionItem*> queue;
+    
+    // 从根节点开始
+    if (data.actionMap.contains("root")) {
+        MenuActionItem *root = data.actionMap["root"];
+        root->level = 0;
+        queue.append(root);
+        visited.insert("root");
     }
+    
+    while (!queue.isEmpty()) {
+        MenuActionItem *parent = queue.takeFirst();
+        
+        // 计算子节点的层级
+        for (const QString &childId : parent->childActions) {
+            if (data.actionMap.contains(childId) && !visited.contains(childId)) {
+                MenuActionItem *child = data.actionMap[childId];
+                child->level = parent->level + 1;
+                if (child->level > 3) {
+                    child->level = 3;
+                }
+                queue.append(child);
+                visited.insert(childId);
+            }
+        }
+    }
+    
+    qDebug() << "buildTreeStructure: Calculated levels for" << visited.size() << "items";
 }
 
 void ConfigParser::calculateLevel(MenuActionItem &action, ConfigData &data) {
+    // 这个方法已经不再使用，被 buildTreeStructure 中的 BFS 替代
     if (action.isRoot) {
         action.level = 0;
         return;

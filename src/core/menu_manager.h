@@ -35,6 +35,9 @@ public:
     Q_INVOKABLE bool validateConfig(const QString &filePath);
     Q_INVOKABLE QStringList getValidationErrors();
     
+    // 导出 JSON（用于调试）
+    Q_INVOKABLE QString exportToJson(const QString &configFile);
+    
     // 获取文件模型
     Q_INVOKABLE MenuFileModel* getFileModel();
     

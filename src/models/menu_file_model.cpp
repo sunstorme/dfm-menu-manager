@@ -7,6 +7,8 @@ MenuFileModel::MenuFileModel(QObject *parent)
     : QAbstractListModel(parent)
     , m_showSystemOnly(false)
 {
+    // 自动加载文件列表
+    refresh();
 }
 
 int MenuFileModel::rowCount(const QModelIndex &parent) const {

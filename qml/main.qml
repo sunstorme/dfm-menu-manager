@@ -13,6 +13,80 @@ ApplicationWindow {
     minimumHeight: 600
     title: qsTr("DFM 右键菜单管理器")
     
+    // TreeView delegate
+    Component {
+        id: treeViewDelegate
+        
+        Rectangle {
+            id: delegateItem
+            
+            implicitWidth: userHeader.width
+            implicitHeight: label.implicitHeight * 2
+            
+            readonly property real indent: 20
+            readonly property real padding: 5
+            
+            required property TreeView treeView
+            required property bool isTreeNode
+            required property bool expanded
+            required property int hasChildren
+            required property int depth
+            
+            color: "transparent"
+            
+            border.color: "transparent"
+            border.width: 1
+            radius: 4
+            
+            Rectangle {
+                width: delegateItem.padding
+                height: parent.height
+                visible: !model.column && (model.row === delegateItem.treeView.currentRow)
+                color: Styles.Style.primaryColor
+            }
+            
+            // 展开/折叠按钮
+            Text {
+                id: indicator
+                visible: delegateItem.isTreeNode && delegateItem.hasChildren > 0
+                x: delegateItem.padding + (delegateItem.depth * delegateItem.indent)
+                width: delegateItem.indent
+                height: delegateItem.height
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+                text: delegateItem.expanded ? "▼" : "▶"
+                font.pixelSize: 12
+                color: Styles.Style.secondaryTextColor
+                
+                TapHandler {
+                    onTapped: {
+                        treeView.toggleExpanded(row)
+                        console.log("Toggle expand:", model.name, "expanded:", !delegateItem.expanded, "hasChildren:", delegateItem.hasChildren)
+                    }
+                }
+            }
+            
+            // 文本内容
+            Text {
+                id: label
+                x: delegateItem.padding + (delegateItem.isTreeNode ? (delegateItem.depth + 1) * delegateItem.indent : delegateItem.depth * delegateItem.indent)
+                width: delegateItem.width - delegateItem.padding - x
+                height: delegateItem.height
+                verticalAlignment: Text.AlignVCenter
+                text: model.nameLocal || model.name || ""
+                font.pixelSize: 14
+                color: Styles.Style.textColor
+                elide: Text.ElideRight
+                
+                TapHandler {
+                    onTapped: {
+                        console.log("Clicked item:", model.name, "nameLocal:", model.nameLocal, "depth:", delegateItem.depth, "hasChildren:", delegateItem.hasChildren)
+                    }
+                }
+            }
+        }
+    }
+    
     // 窗口状态管理
     Component.onCompleted: {
         // WindowManager.restoreState(root)
@@ -124,7 +198,7 @@ ApplicationWindow {
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 anchors.margins: Styles.Style.padding
-                                height: userExpanded ? userList.height : 0
+                                height: userExpanded ? 400 : 0
                                 clip: true
                                 
                                 ListView {
@@ -201,7 +275,7 @@ ApplicationWindow {
                                 anchors.left: parent.left
                                 anchors.right: parent.right
                                 anchors.margins: Styles.Style.padding
-                                height: systemExpanded ? systemList.height : 0
+                                height: systemExpanded ? 400 : 0
                                 clip: true
                                 
                                 ListView {
@@ -223,14 +297,6 @@ ApplicationWindow {
             onWidthChanged: {
                 filePanelWidth = width
             }
-        }
-        
-        // 分隔器
-        Rectangle {
-            SplitView.minimumWidth: 1
-            SplitView.preferredWidth: 1
-            SplitView.maximumWidth: 1
-            color: Styles.Style.borderColor
         }
         
         // 中间面板 - 菜单编辑区
@@ -265,11 +331,31 @@ ApplicationWindow {
                     height: parent.height - Styles.Style.toolbarHeight
                     color: Styles.Style.backgroundColor
                     
+                    ScrollView {
+                        anchors.fill: parent
+                        anchors.margins: Styles.Style.padding
+                        visible: currentMenuModel !== null
+                        
+                        TreeView {
+                            id: menuTreeView
+                            anchors.fill: parent
+                            model: currentMenuModel
+                            delegate: treeViewDelegate
+                            clip: true
+                            alternatingRows: true
+                            
+                            selectionModel: ItemSelectionModel {
+                                id: treeSelection
+                            }
+                        }
+                    }
+                    
                     Text {
                         anchors.centerIn: parent
-                        text: qsTr("菜单树视图")
+                        text: currentMenuModel === null ? qsTr("请选择一个配置文件") : ""
                         font.pixelSize: 14
                         color: Styles.Style.secondaryTextColor
+                        visible: currentMenuModel === null
                     }
                 }
             }
@@ -277,14 +363,6 @@ ApplicationWindow {
             onWidthChanged: {
                 menuEditorWidth = width
             }
-        }
-        
-        // 分隔器
-        Rectangle {
-            SplitView.minimumWidth: 1
-            SplitView.preferredWidth: 1
-            SplitView.maximumWidth: 1
-            color: Styles.Style.borderColor
         }
         
         // 右侧面板 - 属性编辑区
@@ -399,8 +477,15 @@ ApplicationWindow {
         Rectangle {
             width: ListView.view ? ListView.view.width : 100
             height: Styles.Style.itemHeight
-            color: mouseArea.containsMouse ? Styles.Style.hoverColor : 
-                   mouseArea.pressed ? Styles.Style.selectColor : "transparent"
+            color: {
+                if (model.filePath === selectedFilePath) {
+                    return Styles.Style.selectColor
+                } else if (mouseArea.containsMouse) {
+                    return Styles.Style.hoverColor
+                } else {
+                    return "transparent"
+                }
+            }
             
             Text {
                 anchors.left: parent.left
@@ -409,6 +494,7 @@ ApplicationWindow {
                 text: model.fileName || ""
                 font.pixelSize: 14
                 color: Styles.Style.textColor
+                font.bold: model.filePath === selectedFilePath
             }
             
             Text {
@@ -426,6 +512,7 @@ ApplicationWindow {
                 anchors.fill: parent
                 hoverEnabled: true
                 onClicked: {
+                    selectedFilePath = model.filePath || ""
                     menuManager.setCurrentConfig(model.filePath || "")
                 }
             }
@@ -436,8 +523,35 @@ ApplicationWindow {
     property bool userExpanded: true
     property bool systemExpanded: false
     
+    // 当前选中的文件路径
+    property string selectedFilePath: ""
+    
+    // 当前菜单树模型
+    property var currentMenuModel: null
+    
     // 保存列宽
     property real filePanelWidth: 350
     property real menuEditorWidth: 630
     property real propertyPanelWidth: 420
+    
+    // 连接 MenuManager 信号
+    Connections {
+        target: menuManager
+        function onConfigLoaded(configFile) {
+            console.log("Config loaded:", configFile)
+            selectedFilePath = configFile
+            currentMenuModel = menuManager.getMenuModel(configFile)
+            if (currentMenuModel) {
+                console.log("Menu model loaded, row count:", currentMenuModel.rowCount())
+                
+                // 导出 JSON 用于调试
+                var jsonString = menuManager.exportToJson(configFile)
+                console.log("=== Exported JSON ===")
+                console.log(jsonString)
+                console.log("=== End of JSON ===")
+            } else {
+                console.log("Failed to load menu model")
+            }
+        }
+    }
 }
