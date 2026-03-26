@@ -51,7 +51,7 @@ QHash<int, QByteArray> MenuFileModel::roleNames() const {
 
 void MenuFileModel::refresh() {
     beginResetModel();
-    m_files.clear();
+    m_allFiles.clear();
     
     // 根据showSystemOnly属性决定加载哪些文件
     if (!m_showSystemOnly) {
@@ -66,7 +66,7 @@ void MenuFileModel::refresh() {
                 info.path = userDir + "/" + fileName;
                 info.isSystem = false;
                 info.isModified = false;
-                m_files.append(info);
+                m_allFiles.append(info);
             }
         }
     }
@@ -83,6 +83,37 @@ void MenuFileModel::refresh() {
                 info.path = systemDir + "/" + fileName;
                 info.isSystem = true;
                 info.isModified = false;
+                m_allFiles.append(info);
+            }
+        }
+    }
+    
+    // 应用搜索过滤
+    applySearchFilter();
+    
+    endResetModel();
+}
+
+void MenuFileModel::setSearchFilter(const QString &filter) {
+    if (m_searchFilter != filter) {
+        m_searchFilter = filter;
+        emit searchFilterChanged();
+        applySearchFilter();
+    }
+}
+
+void MenuFileModel::applySearchFilter() {
+    beginResetModel();
+    m_files.clear();
+    
+    if (m_searchFilter.isEmpty()) {
+        // 如果搜索过滤为空，显示所有文件
+        m_files = m_allFiles;
+    } else {
+        // 根据搜索过滤文件
+        QString filterLower = m_searchFilter.toLower();
+        for (const FileInfo &info : m_allFiles) {
+            if (info.name.toLower().contains(filterLower)) {
                 m_files.append(info);
             }
         }

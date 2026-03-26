@@ -123,6 +123,11 @@ ApplicationWindow {
                     placeholderText: qsTr("搜索配置文件...")
                     font.pixelSize: 14
                     
+                    onTextChanged: {
+                        userFileModel.searchFilter = text
+                        systemFileModel.searchFilter = text
+                    }
+                    
                     background: Rectangle {
                         color: Styles.Style.backgroundColor
                         border.color: Styles.Style.borderColor

@@ -7,6 +7,7 @@
 class MenuFileModel : public QAbstractListModel {
     Q_OBJECT
     Q_PROPERTY(bool showSystemOnly READ showSystemOnly WRITE setShowSystemOnly NOTIFY showSystemOnlyChanged)
+    Q_PROPERTY(QString searchFilter READ searchFilter WRITE setSearchFilter NOTIFY searchFilterChanged)
     
 public:
     enum Roles {
@@ -24,6 +25,8 @@ public:
     QHash<int, QByteArray> roleNames() const override;
     
     Q_INVOKABLE void refresh();
+    void setSearchFilter(const QString &filter);
+    QString searchFilter() const { return m_searchFilter; }
     Q_INVOKABLE void createFile(const QString &name);
     Q_INVOKABLE void deleteFile(const QString &path);
     Q_INVOKABLE void renameFile(const QString &path, const QString &newName);
@@ -40,8 +43,11 @@ public:
     
 signals:
     void showSystemOnlyChanged();
+    void searchFilterChanged();
     
 private:
+    void applySearchFilter();
+    
     struct FileInfo {
         QString name;
         QString path;
@@ -51,7 +57,9 @@ private:
     };
     
     QList<FileInfo> m_files;
+    QList<FileInfo> m_allFiles;  // 保存所有文件，用于搜索过滤
     bool m_showSystemOnly;
+    QString m_searchFilter;
 };
 
 #endif // MENUFILEMODEL_H
