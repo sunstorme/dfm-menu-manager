@@ -1,0 +1,77 @@
+# Build directories
+build/
+build-*/
+*.build
+*.deb
+*.changes
+*.dsc
+*.tar.gz
+*.tar.xz
+
+# Qt files
+*.autosave
+*.qmlc
+*.jsc
+moc_*.cpp
+qrc_*.cpp
+ui_*.h
+*.pro.user
+*.pro.user.*
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+!CMakeLists.txt
+
+# Compiled Object files
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+dfm-menu-manager
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Translation files
+*.qm
+
+# Debian packaging
+*.debhelper
+*.debhelper.log
+debian/*.debhelper.log
+debian/*.substvars
+debian/debhelper-build-stamp
+debian/files
+debian/tmp/
+
+# System files
+.DS_Store
+Thumbs.db
+obj-x86_64-linux-gnu/install_manifest.txt
+obj-x86_64-linux-gnu/translations
+obj-x86_64-linux-gnu/Testing/Temporary/CTestCostData.txt
+obj-x86_64-linux-gnu/Testing/Temporary/LastTest.log
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/deps
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/moc_predefs.h
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/mocs_compilation.cpp
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/timestamp
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/M4YTXQ7V2H/moc_menu_file_model.cpp.d
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/M4YTXQ7V2H/moc_menu_tree_model.cpp.d
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/PRMOGMWJPH/moc_file_watcher.cpp.d
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/PRMOGMWJPH/moc_menu_manager.cpp.d
+obj-x86_64-linux-gnu/dfm-menu-manager_autogen/VSCBVMNR7M/moc_window_manager.cpp.d
+CMakeLists.txt.user
