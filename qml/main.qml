@@ -13,7 +13,7 @@ ApplicationWindow {
     height: 900
     minimumWidth: 1000
     minimumHeight: 600
-    title: qsTr("DFM 右键菜单管理器")
+    title: qsTr("DFM Context Menu Manager")
     
     // TreeView delegate
     Component {
@@ -42,7 +42,8 @@ ApplicationWindow {
             
             Rectangle {
                 width: delegateItem.padding
-                height: parent.height
+                height: parent.height / 2
+                anchors.verticalCenter: parent.verticalCenter 
                 visible: !model.column && (model.row === delegateItem.treeView.currentRow)
                 color: Styles.Style.primaryColor
             }
@@ -57,7 +58,7 @@ ApplicationWindow {
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
                 text: delegateItem.expanded ? "▼" : "▶"
-                font.pixelSize: 12
+                font: Styles.Style.tagFont
                 color: Styles.Style.secondaryTextColor
                 
                 TapHandler {
@@ -76,7 +77,7 @@ ApplicationWindow {
                 height: delegateItem.height
                 verticalAlignment: Text.AlignVCenter
                 text: model.nameLocal || model.name || ""
-                font.pixelSize: 14
+                font: Styles.Style.bodyFont
                 color: Styles.Style.textColor
                 elide: Text.ElideRight
                 
@@ -122,8 +123,8 @@ ApplicationWindow {
                     id: searchBox
                     width: parent.width
                     height: Styles.Style.itemHeight
-                    placeholderText: qsTr("搜索配置文件...")
-                    font.pixelSize: 14
+                    placeholderText: qsTr("Search configuration files...")
+                    font: Styles.Style.bodyFont
                     
                     onTextChanged: {
                         userFileModel.searchFilter = text
@@ -150,6 +151,7 @@ ApplicationWindow {
                         Rectangle {
                             id: userGroupBox
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             color: Styles.Style.backgroundColor
                             border.color: Styles.Style.borderColor
                             border.width: 1
@@ -176,9 +178,8 @@ ApplicationWindow {
                                     anchors.left: parent.left
                                     anchors.leftMargin: Styles.Style.padding
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("用户配置")
-                                    font.pixelSize: 14
-                                    font.bold: true
+                                    text: qsTr("User Configuration")
+                                    font: Styles.Style.h2Font
                                     color: Styles.Style.textColor
                                 }
                                 
@@ -187,7 +188,7 @@ ApplicationWindow {
                                     anchors.rightMargin: Styles.Style.padding
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: userExpanded ? "▼" : "▶"
-                                    font.pixelSize: 12
+                                    font: Styles.Style.tagFont
                                     color: Styles.Style.secondaryTextColor
                                 }
                                 
@@ -206,13 +207,19 @@ ApplicationWindow {
                                 anchors.top: userHeader.bottom
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                anchors.margins: Styles.Style.padding
-                                height: userExpanded ? 400 : 0
+                                anchors.topMargin: Styles.Style.padding
+                                anchors.leftMargin: Styles.Style.padding
+                                anchors.rightMargin: Styles.Style.padding
+                                height: userExpanded ? implicitHeight : 0
+                                implicitHeight: userList.implicitHeight
                                 clip: true
+                                visible: userExpanded
                                 
                                 ListView {
                                     id: userList
-                                    anchors.fill: parent
+                                    width: parent.width
+                                    height: parent.height
+                                    implicitHeight: contentHeight
                                     model: MenuFileModel {
                                         id: userFileModel
                                         showSystemOnly: false
@@ -227,6 +234,7 @@ ApplicationWindow {
                         Rectangle {
                             id: systemGroupBox
                             Layout.fillWidth: true
+                            Layout.fillHeight: true
                             color: Styles.Style.backgroundColor
                             border.color: Styles.Style.borderColor
                             border.width: 1
@@ -253,9 +261,8 @@ ApplicationWindow {
                                     anchors.left: parent.left
                                     anchors.leftMargin: Styles.Style.padding
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("系统配置")
-                                    font.pixelSize: 14
-                                    font.bold: true
+                                    text: qsTr("System Configuration")
+                                    font: Styles.Style.h2Font
                                     color: Styles.Style.textColor
                                 }
                                 
@@ -264,7 +271,7 @@ ApplicationWindow {
                                     anchors.rightMargin: Styles.Style.padding
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: systemExpanded ? "▼" : "▶"
-                                    font.pixelSize: 12
+                                    font: Styles.Style.tagFont
                                     color: Styles.Style.secondaryTextColor
                                 }
                                 
@@ -283,13 +290,19 @@ ApplicationWindow {
                                 anchors.top: systemHeader.bottom
                                 anchors.left: parent.left
                                 anchors.right: parent.right
-                                anchors.margins: Styles.Style.padding
-                                height: systemExpanded ? 400 : 0
+                                anchors.topMargin: Styles.Style.padding
+                                anchors.leftMargin: Styles.Style.padding
+                                anchors.rightMargin: Styles.Style.padding
+                                height: systemExpanded ? implicitHeight : 0
+                                implicitHeight: systemList.implicitHeight
                                 clip: true
+                                visible: systemExpanded
                                 
                                 ListView {
                                     id: systemList
-                                    anchors.fill: parent
+                                    width: parent.width
+                                    height: parent.height
+                                    implicitHeight: contentHeight
                                     model: MenuFileModel {
                                         id: systemFileModel
                                         showSystemOnly: true
@@ -317,6 +330,7 @@ ApplicationWindow {
             
             Column {
                 anchors.fill: parent
+                anchors.margins: Styles.Style.padding
                 spacing: 0
                 
                 // 工具栏
@@ -326,10 +340,9 @@ ApplicationWindow {
                     color: Styles.Style.backgroundColor
                     
                     Text {
-                        anchors.centerIn: parent
-                        text: qsTr("菜单结构编辑")
-                        font.pixelSize: 16
-                        font.bold: true
+                        anchors.left: parent.left
+                        text: qsTr("Menu Structure Editor")
+                        font: Styles.Style.h1Font
                         color: Styles.Style.textColor
                     }
                 }
@@ -341,8 +354,8 @@ ApplicationWindow {
                     color: Styles.Style.backgroundColor
                     
                     ScrollView {
+                        id: menuScrollView
                         anchors.fill: parent
-                        anchors.margins: Styles.Style.padding
                         visible: currentMenuModel !== null
                         
                         TreeView {
@@ -358,15 +371,15 @@ ApplicationWindow {
                             }
                         }
                     }
-                    
-                    Text {
-                        anchors.centerIn: parent
-                        text: currentMenuModel === null ? qsTr("请选择一个配置文件") : ""
-                        font.pixelSize: 14
-                        color: Styles.Style.secondaryTextColor
-                        visible: currentMenuModel === null
-                    }
                 }
+            }
+
+            Text {
+                anchors.centerIn: parent
+                text: currentMenuModel === null ? qsTr("Please select a configuration file") : ""
+                font: Styles.Style.bodyFont
+                color: Styles.Style.secondaryTextColor
+                visible: currentMenuModel === null
             }
             
             onWidthChanged: {
@@ -394,9 +407,9 @@ ApplicationWindow {
                         spacing: Styles.Style.spacing * 2
                         
                         Text {
-                            text: currentItem ? qsTr("属性编辑: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("属性编辑")
-                            font.pixelSize: 16
-                            font.bold: true
+                            anchors.left: parent.left
+                            text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
+                            font: Styles.Style.h1Font
                             color: Styles.Style.textColor
                         }
                     
@@ -412,15 +425,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("描述")
-                                font.pixelSize: 12
+                                text: qsTr("Description")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.comment || "" : ""
                                 
                                 background: Rectangle {
@@ -438,15 +451,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("描述(中文)")
-                                font.pixelSize: 12
+                                text: qsTr("Description (Chinese)")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.commentLocal || "" : ""
                                 
                                 background: Rectangle {
@@ -464,15 +477,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("版本号")
-                                font.pixelSize: 12
+                                text: qsTr("Version")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.version || "" : ""
                                 
                                 background: Rectangle {
@@ -497,15 +510,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("菜单名称")
-                                font.pixelSize: 12
+                                text: qsTr("Menu Name")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.name || "" : ""
                                 
                                 background: Rectangle {
@@ -523,15 +536,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("菜单名称(中文)")
-                                font.pixelSize: 12
+                                text: qsTr("Menu Name (Chinese)")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.nameLocal || "" : ""
                                 
                                 background: Rectangle {
@@ -549,8 +562,8 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("菜单类型")
-                                font.pixelSize: 12
+                                text: qsTr("Menu Type")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
@@ -589,8 +602,8 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("支持的后缀")
-                                font.pixelSize: 12
+                                text: qsTr("Supported Suffixes")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
@@ -625,8 +638,8 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("位置编号")
-                                font.pixelSize: 12
+                                text: qsTr("Position Number")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
@@ -636,7 +649,7 @@ ApplicationWindow {
                                 from: 1
                                 to: 100
                                 value: currentItem ? currentItem.positionNumber || 1 : 1
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                             }
                         }
                         
@@ -647,15 +660,15 @@ ApplicationWindow {
                             spacing: 5
                             
                             Text {
-                                text: qsTr("可执行命令")
-                                font.pixelSize: 12
+                                text: qsTr("Executable Command")
+                                font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
                             
                             TextField {
                                 width: parent.width
                                 height: Styles.Style.itemHeight
-                                font.pixelSize: 14
+                                font: Styles.Style.bodyFont
                                 text: currentItem ? currentItem.execCommand || "" : ""
                                 
                                 background: Rectangle {
@@ -674,8 +687,8 @@ ApplicationWindow {
                 Text {
                     visible: currentItem === null
                     anchors.centerIn: parent
-                    text: qsTr("请选择一个菜单项")
-                    font.pixelSize: 14
+                    text: qsTr("Please select a menu item")
+                    font: Styles.Style.bodyFont
                     color: Styles.Style.secondaryTextColor
                 }
             }
@@ -708,17 +721,18 @@ ApplicationWindow {
                 anchors.leftMargin: Styles.Style.padding
                 anchors.verticalCenter: parent.verticalCenter
                 text: model.fileName || ""
-                font.pixelSize: 14
-                color: Styles.Style.textColor
+                font.pixelSize: Styles.Style.bodyFont.pixelSize
+                font.family: Styles.Style.bodyFont.family
                 font.bold: model.filePath === selectedFilePath
+                color: Styles.Style.textColor
             }
             
             Text {
                 anchors.right: parent.right
                 anchors.rightMargin: Styles.Style.padding
                 anchors.verticalCenter: parent.verticalCenter
-                text: model.isSystem ? qsTr("系统") : ""
-                font.pixelSize: 12
+                text: model.isSystem ? qsTr("System") : ""
+                font: Styles.Style.tagFont
                 color: Styles.Style.systemTagColor
                 visible: model.isSystem
             }
@@ -774,3 +788,4 @@ ApplicationWindow {
         }
     }
 }
+

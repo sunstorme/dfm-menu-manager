@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/i18n">
+        <file>../../translations/dfm-menu-manager_zh_CN.qm</file>
+        <file>../../translations/dfm-menu-manager_en_US.qm</file>
+    </qresource>
+</RCC>

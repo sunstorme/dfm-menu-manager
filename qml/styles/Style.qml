@@ -17,25 +17,43 @@ QtObject {
     readonly property color successColor: "#00C853"
     
     // 字体
-    readonly property font titleFont: Qt.font({
+    // 一级标题（如：菜单结构编辑、属性编辑）
+    readonly property font h1Font: Qt.font({
         family: "Noto Sans CJK SC",
-        pixelSize: 16,
+        pixelSize: 18,
         bold: true
     })
     
-    readonly property font itemFont: Qt.font({
+    // 二级标题（如：用户配置、系统配置）
+    readonly property font h2Font: Qt.font({
+        family: "Noto Sans CJK SC",
+        pixelSize: 15,
+        bold: true
+    })
+    
+    // 三级标题（如：描述、菜单名称等标签）
+    readonly property font h3Font: Qt.font({
+        family: "Noto Sans CJK SC",
+        pixelSize: 13,
+        bold: false
+    })
+    
+    // 正文内容
+    readonly property font bodyFont: Qt.font({
         family: "Noto Sans CJK SC",
         pixelSize: 14
     })
     
+    // 标签/小字
     readonly property font tagFont: Qt.font({
         family: "Noto Sans CJK SC",
         pixelSize: 12
     })
     
+    // 小字（辅助信息）
     readonly property font smallFont: Qt.font({
         family: "Noto Sans CJK SC",
-        pixelSize: 12
+        pixelSize: 11
     })
     
     // 尺寸

@@ -47,6 +47,7 @@ set(HEADERS
 # 设置QML资源文件
 set(QML_RESOURCES
     src/resources/qml.qrc
+    src/resources/i18n.qrc
 )
 
 # 创建可执行文件
@@ -77,14 +78,18 @@ set(TS_FILES
 
 # 添加自定义目标用于更新翻译
 add_custom_target(lupdate
-    COMMAND Qt6::lupdate ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h -ts ${TS_FILES}
+    COMMAND Qt6::lupdate ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/qml -ts ${TS_FILES}
     COMMENT "Updating translation files"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 add_custom_target(lrelease ALL
-    COMMAND Qt6::lrelease ${TS_FILES} -qm ${CMAKE_CURRENT_BINARY_DIR}/translations
+    COMMAND Qt6::lrelease ${TS_FILES}
     COMMENT "Releasing translation files"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    BYPRODUCTS
+        ${CMAKE_CURRENT_SOURCE_DIR}/translations/dfm-menu-manager_zh_CN.qm
+        ${CMAKE_CURRENT_SOURCE_DIR}/translations/dfm-menu-manager_en_US.qm
 )
 
 # 安装规则

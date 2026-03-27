@@ -51,9 +51,26 @@ int main(int argc, char *argv[])
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
         const QString baseName = "dfm-menu-manager_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
-            app.installTranslator(&translator);
-            qDebug() << "Loaded translation:" << baseName;
+        qDebug() << "Trying to load translation:" << baseName;
+        
+        // 尝试从多个路径加载翻译文件
+        QStringList searchPaths;
+        searchPaths << ":/i18n/translations/" 
+                    << QCoreApplication::applicationDirPath() + "/translations/"
+                    << QCoreApplication::applicationDirPath() + "/../share/dfm-menu-manager/translations/";
+        
+        bool loaded = false;
+        for (const QString &path : searchPaths) {
+            qDebug() << "  Trying path:" << path + baseName + ".qm";
+            if (translator.load(path + baseName + ".qm")) {
+                app.installTranslator(&translator);
+                qDebug() << "Successfully loaded translation from:" << path + baseName + ".qm";
+                loaded = true;
+                break;
+            }
+        }
+        
+        if (loaded) {
             break;
         }
     }
