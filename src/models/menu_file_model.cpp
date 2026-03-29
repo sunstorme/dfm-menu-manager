@@ -226,7 +226,6 @@ void MenuFileModel::createFile(const QString &name) {
     if (file.open(QIODevice::WriteOnly)) {
         file.write("# DFM Context Menu Configuration\n");
         file.close();
-        qDebug() << "Successfully created file:" << filePath;
         
         // 重新启动文件监视以包含新文件
         QTimer::singleShot(50, this, [this]() {
@@ -427,8 +426,6 @@ void MenuFileModel::startNewFile() {
     m_allFiles.prepend(newFileInfo);
     
     endInsertRows();
-    
-    qDebug() << "Started creating new file, inserted placeholder at position 0";
 }
 
 void MenuFileModel::cancelNewFile() {
@@ -437,7 +434,5 @@ void MenuFileModel::cancelNewFile() {
         m_files.removeFirst();
         m_allFiles.removeFirst();
         endRemoveRows();
-        
-        qDebug() << "Cancelled new file creation, removed placeholder";
     }
 }

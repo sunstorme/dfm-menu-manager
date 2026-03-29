@@ -293,6 +293,12 @@ ApplicationWindow {
                 hoverEnabled: true
                 
                 onClicked: function(mouse) {
+                    // 如果模型为空或没有项目，不处理右键点击，让事件传递给背景区域的MouseArea
+                    if (currentMenuModel === null || currentMenuModel.rowCount() === 0) {
+                        mouse.accepted = false
+                        return
+                    }
+                    
                     // 如果有其他项目正在编辑，先结束编辑
                     if (root.editingDelegate && root.editingDelegate !== delegateItem && root.editingDelegate.isEditing) {
                         if (root.editingDelegate.editTextField && root.editingDelegate.editTextField.text.trim() !== "") {
@@ -312,6 +318,7 @@ ApplicationWindow {
         }
     }
     
+
     // 窗口状态管理
     Component.onCompleted: {
         WindowManager.restoreState(root, root)
@@ -624,11 +631,13 @@ ApplicationWindow {
                     // 空配置文件提示
                     Text {
                         anchors.centerIn: parent
-                        text: currentMenuModel === null ? qsTr("Please select a configuration file") : 
-                               currentMenuModel.rowCount() === 0 ? qsTr("Right-click to add menu items") : ""
+                        text: selectedFilePath === "" ? qsTr("Please select a configuration file") :
+                               currentMenuModel === null ? qsTr("Loading configuration...") : ""
                             font: Styles.Style.bodyFont
                         color: Styles.Style.secondaryTextColor
-                        visible: currentMenuModel === null || (currentMenuModel !== null && currentMenuModel.rowCount() === 0)
+                        // 只在未选择配置文件时显示提示
+                        // 当配置文件为空时，TreeView 应该显示，让用户可以右键添加项目
+                        visible: selectedFilePath === ""
                         z: 1
                     }
                     
@@ -640,13 +649,13 @@ ApplicationWindow {
                         z: 2
                         
                         onClicked: function(mouse) {
-                            if (currentMenuModel !== null && currentMenuModel.rowCount() > 0) {
-                                // 如果有菜单项，让事件传递给delegate处理
-                                mouse.accepted = false
-                            } else if (currentMenuModel !== null) {
-                                // 空配置文件，显示添加菜单
+                            // 如果已选择配置文件，但模型为空或没有项目，显示添加菜单
+                            if (selectedFilePath !== "" && (currentMenuModel === null || currentMenuModel.rowCount() === 0)) {
                                 emptyContextMenu.popup(mouse)
                                 mouse.accepted = true
+                            } else {
+                                // 其他情况让事件传递给delegate处理
+                                mouse.accepted = false
                             }
                         }
                     }
@@ -678,7 +687,6 @@ ApplicationWindow {
                         MenuItem {
                             text: qsTr("Add Menu")
                             onTriggered: {
-                                console.log("Add menu for empty config")
                                 if (currentMenuModel !== null) {
                                     var rootIndex = currentMenuModel.index(0, 0)
                                     currentMenuModel.addChildItem(rootIndex, qsTr("New Menu"))
@@ -1287,36 +1295,27 @@ ApplicationWindow {
             // 完成编辑的函数
             function finishEditing(newName) {
                 var trimmedName = newName.trim()
-                console.log("finishEditing called with:", trimmedName, "isNewFile:", isNewFile, "editingFilePath:", editingFilePath, "model.filePath:", model.filePath)
                 
                 if (trimmedName !== "") {
-                    console.log("Finishing edit with name:", trimmedName)
-                    var currentModel = ListView.view ? ListView.view.model : null
-                    console.log("currentModel:", currentModel, "editingModelRef:", editingModelRef, "typeof editingModelRef:", typeof editingModelRef)
-                    
                     if (isNewFile && model.filePath === "" && editingModelRef && editingModelRef.createFile) {
                         // 创建新文件
-                        console.log("Creating new file:", trimmedName)
                         editingModelRef.createFile(trimmedName)
                     } else if (!isNewFile && editingFilePath !== "" && editingModelRef && editingModelRef.renameFile) {
                         // 重命名文件
-                        console.log("Renaming file from", editingFilePath, "to", trimmedName)
                         editingModelRef.renameFile(editingFilePath, trimmedName)
-                    } else {
-                        console.log("Condition not met - isNewFile:", isNewFile, "editingFilePath:", editingFilePath, "model.filePath:", model.filePath, "editingModelRef:", editingModelRef, "has createFile:", editingModelRef && editingModelRef.createFile, "has renameFile:", editingModelRef && editingModelRef.renameFile)
                     }
                 }
+                
                 cancelEditing()
             }
             
             // 取消编辑的函数
             function cancelEditing() {
-                console.log("cancelEditing called - isNewFile:", isNewFile, "model.filePath:", model.filePath)
                 if (isNewFile && model.filePath === "" && editingModelRef && editingModelRef.cancelNewFile) {
                     // 取消新建文件，移除占位符
-                    console.log("Calling cancelNewFile")
                     editingModelRef.cancelNewFile()
                 }
+                
                 editingFilePath = ""
                 isNewFile = false
                 editingModelRef = null
@@ -1359,7 +1358,6 @@ ApplicationWindow {
         MenuItem {
             text: qsTr("New File")
             onTriggered: {
-                console.log("Creating new file inline")
                 var currentModel = contextMenu.modelRef
                 if (currentModel && currentModel.startNewFile) {
                     currentModel.startNewFile()
@@ -1533,8 +1531,14 @@ ApplicationWindow {
             console.log("Config loaded:", configFile)
             selectedFilePath = configFile
             currentMenuModel = menuManager.getMenuModel(configFile)
+            console.log("currentMenuModel:", currentMenuModel)
+            console.log("currentMenuModel type:", typeof currentMenuModel)
             if (currentMenuModel) {
                 console.log("Menu model loaded, row count:", currentMenuModel.rowCount())
+                console.log("TreeView width:", menuTreeView.width, "height:", menuTreeView.height)
+                
+                // 展开所有节点
+                menuTreeView.expandRecursively(-1, -1)
                 
                 // 导出 JSON 用于调试
                 var jsonString = menuManager.exportToJson(configFile)

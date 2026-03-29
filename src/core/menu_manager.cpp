@@ -152,14 +152,15 @@ MenuTreeModel* MenuManager::getMenuModel(const QString &configFile) {
         qDebug() << "Config data isValid:" << data.isValid();
         qDebug() << "Config data actions count:" << data.actions.size();
         
-        if (!data.isValid()) {
-            emit errorOccurred("解析配置文件失败");
-            return nullptr;
-        }
-        
-        // 创建模型
+        // 创建模型（即使配置数据无效，也创建空模型让用户可以编辑）
         MenuTreeModel *model = new MenuTreeModel(this);
-        model->setConfigData(data);
+        if (data.isValid()) {
+            model->setConfigData(data);
+        } else {
+            qDebug() << "Config data is invalid, creating empty model for editing";
+            // 不发射错误信号，因为空配置文件是允许的
+            // emit errorOccurred("解析配置文件失败");
+        }
         m_models[configFile] = model;
         qDebug() << "Model created, rowCount:" << model->rowCount();
     }

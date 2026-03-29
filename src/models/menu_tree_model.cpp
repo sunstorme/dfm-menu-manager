@@ -33,7 +33,7 @@ MenuTreeModel::TreeItem* MenuTreeModel::getItem(const QModelIndex &idx) const {
     return m_rootItem;
 }
 
-QModelIndex MenuTreeModel::index(int row, int column, 
+QModelIndex MenuTreeModel::index(int row, int column,
                                  const QModelIndex &parent) const {
     if (!hasIndex(row, column, parent)) {
         return QModelIndex();
@@ -318,12 +318,16 @@ void MenuTreeModel::addSiblingItem(const QModelIndex &index, const QString &name
 }
 
 void MenuTreeModel::addChildItem(const QModelIndex &index, const QString &name) {
+    QModelIndex parentIndex = index;
+    TreeItem *parentItem = nullptr;
+    
     if (!index.isValid()) {
-        emit errorOccurred("无效的索引");
-        return;
+        parentItem = m_rootItem;
+        parentIndex = QModelIndex();
+    } else {
+        parentItem = getItem(index);
     }
     
-    TreeItem *parentItem = getItem(index);
     if (!parentItem) {
         emit errorOccurred("找不到节点");
         return;
@@ -335,7 +339,7 @@ void MenuTreeModel::addChildItem(const QModelIndex &index, const QString &name) 
         return;
     }
     
-    beginInsertRows(index, parentItem->subItems.size(), parentItem->subItems.size());
+    beginInsertRows(parentIndex, parentItem->subItems.size(), parentItem->subItems.size());
     
     // 创建新菜单项
     TreeItem *newItem = new TreeItem();
@@ -538,6 +542,10 @@ ConfigParser::ConfigData MenuTreeModel::getConfigData() const {
     
     // 设置根节点属性
     data.version = m_rootItem->version;
+    // 如果版本号为空，设置默认值
+    if (data.version.isEmpty()) {
+        data.version = "1.0";
+    }
     data.comment = m_rootItem->comment;
     data.commentLocal = m_rootItem->commentLocal;
     data.rootActionId = m_rootItem->id;

@@ -6,7 +6,7 @@
 #include <QDir>
 #include <QDebug>
 
-bool ConfigWriter::writeToFile(const QString &filePath, 
+bool ConfigWriter::writeToFile(const QString &filePath,
                                const ConfigParser::ConfigData &data) {
     // 先备份
     if (!backupFile(filePath)) {
@@ -47,7 +47,7 @@ bool ConfigWriter::writeToFile(const QString &filePath,
     // 写入根菜单的 Actions
     auto rootItem = data.actionMap.value("root");
     if (rootItem && !rootItem->childActions.isEmpty()) {
-        out << "  # Contains " << rootItem->childActions.size() 
+        out << "  # Contains " << rootItem->childActions.size()
             << " groups under [Menu Entry]\n";
         out << "Actions=" << rootItem->childActions.join(":") << "\n";
         out << "\n";
