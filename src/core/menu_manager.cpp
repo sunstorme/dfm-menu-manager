@@ -14,6 +14,11 @@ MenuManager::MenuManager(QObject *parent)
     , m_watcher(new FileWatcher(this))
     , m_fileModel(new MenuFileModel(this))
 {
+    // 连接文件监控信号，当外部编辑文件时自动刷新
+    connect(m_watcher, &FileWatcher::fileChanged, 
+            this, &MenuManager::onFileChanged);
+    connect(m_watcher, &FileWatcher::directoryChanged,
+            this, &MenuManager::onDirectoryChanged);
 }
 
 void MenuManager::loadConfigurations() {
@@ -242,4 +247,67 @@ QString MenuManager::exportToJson(const QString &configFile) {
     qDebug() << "Total actions:" << actionsArray.size();
     
     return jsonString;
+}
+
+void MenuManager::onFileChanged(const QString &filePath) {
+    qDebug() << "MenuManager::onFileChanged called for:" << filePath;
+    
+    // 检查文件是否仍然存在（可能是删除操作）
+    if (!QFile::exists(filePath)) {
+        qDebug() << "File no longer exists:" << filePath;
+        // 移除模型
+        if (m_models.contains(filePath)) {
+            m_models.remove(filePath);
+        }
+        // 刷新文件列表
+        m_fileModel->refresh();
+        // 如果是当前配置，清空当前配置
+        if (m_currentConfig == filePath) {
+            m_currentConfig.clear();
+        }
+        emit configChanged(filePath);
+        return;
+    }
+    
+    // 重新解析配置文件
+    ConfigParser::ConfigData data = m_parser.parseFile(filePath);
+    
+    if (!data.isValid()) {
+        qWarning() << "Failed to parse changed file:" << filePath;
+        emit errorOccurred(QString("解析变更的配置文件失败: %1").arg(filePath));
+        return;
+    }
+    
+    // 如果已有模型，更新它；否则创建新模型
+    if (m_models.contains(filePath)) {
+        MenuTreeModel *model = m_models[filePath];
+        model->setConfigData(data);
+        qDebug() << "Updated existing model for:" << filePath;
+    } else {
+        MenuTreeModel *model = new MenuTreeModel(this);
+        model->setConfigData(data);
+        m_models[filePath] = model;
+        qDebug() << "Created new model for:" << filePath;
+    }
+    
+    // 如果是当前正在编辑的文件，发出 configLoaded 信号以刷新 UI
+    if (m_currentConfig == filePath) {
+        emit configLoaded(filePath);
+    }
+    
+    // 刷新文件列表（可能文件名或其他属性变化）
+    m_fileModel->refresh();
+    
+    // 发出配置变化信号
+    emit configChanged(filePath);
+}
+
+void MenuManager::onDirectoryChanged(const QString &dirPath) {
+    qDebug() << "MenuManager::onDirectoryChanged called for:" << dirPath;
+    
+    // 刷新文件列表
+    m_fileModel->refresh();
+    
+    // 重新扫描目录中的文件
+    m_watcher->watchDirectory(dirPath);
 }

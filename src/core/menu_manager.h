@@ -50,6 +50,10 @@ signals:
     void configChanged(const QString &configFile);
     void errorOccurred(const QString &message);
     
+private slots:
+    void onFileChanged(const QString &filePath);
+    void onDirectoryChanged(const QString &dirPath);
+    
 private:
     ConfigParser m_parser;
     ConfigWriter m_writer;
