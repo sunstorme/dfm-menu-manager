@@ -49,11 +49,19 @@ ApplicationWindow {
             required property int hasChildren
             required property int depth
             
-            color: "transparent"
+            color: {
+                if (delegateItem.treeView.currentRow === row) {
+                    return Styles.Style.selectColor
+                } else if (delegateMouseArea.containsMouse) {
+                    return Styles.Style.hoverColor
+                } else {
+                    return "transparent"
+                }
+            }
             
             border.color: "transparent"
             border.width: 1
-            radius: 4
+            radius: Styles.Style.borderRadius
             
             // 获取当前项的索引（使用ID）
             function getCurrentIndex() {
@@ -127,14 +135,6 @@ ApplicationWindow {
                     editTextField.forceActiveFocus()
                     editTextField.selectAll()
                 }
-            }
-            
-            Rectangle {
-                width: delegateItem.padding
-                height: parent.height / 2
-                anchors.verticalCenter: parent.verticalCenter 
-                visible: !model.column && (model.row === delegateItem.treeView.currentRow)
-                color: Styles.Style.primaryColor
             }
             
             // 展开/折叠按钮
@@ -270,9 +270,11 @@ ApplicationWindow {
             
             // 右键菜单触发器
             MouseArea {
+                id: delegateMouseArea
                 anchors.fill: parent
                 acceptedButtons: Qt.RightButton
                 propagateComposedEvents: true
+                hoverEnabled: true
                 
                 onClicked: function(mouse) {
                     // 如果有其他项目正在编辑，先结束编辑
@@ -518,6 +520,7 @@ ApplicationWindow {
                                 anchors.topMargin: Styles.Style.padding
                                 anchors.leftMargin: Styles.Style.padding
                                 anchors.rightMargin: Styles.Style.padding
+                                anchors.bottomMargin:  Styles.Style.padding
                                 height: systemExpanded ? implicitHeight : 0
                                 implicitHeight: systemList.implicitHeight
                                 clip: true
@@ -625,6 +628,7 @@ ApplicationWindow {
                     
                     ScrollView {
                         id: menuScrollView
+                        width: parent.width
                         anchors.fill: parent
                         
                         TreeView {
@@ -1024,6 +1028,7 @@ ApplicationWindow {
                     return "transparent"
                 }
             }
+            radius: Styles.Style.borderRadius
             
             // 文件名显示或编辑框
             Loader {
