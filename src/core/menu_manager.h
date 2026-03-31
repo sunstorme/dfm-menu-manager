@@ -44,6 +44,11 @@ public:
     // 获取文件模型
     Q_INVOKABLE MenuFileModel* getFileModel();
     
+    // 视图状态管理
+    Q_INVOKABLE void saveViewState(const QString &selectedItemId, const QStringList &expandedItemIds);
+    Q_INVOKABLE QString getSelectedItemId() const;
+    Q_INVOKABLE QStringList getExpandedItemIds() const;
+    
 signals:
     void configLoaded(const QString &configFile);
     void configSaved(const QString &configFile);
@@ -61,6 +66,11 @@ private:
     QMap<QString, MenuTreeModel*> m_models;
     QString m_currentConfig;
     MenuFileModel *m_fileModel;
+    bool m_isSaving = false;  // 标志：是否正在保存文件
+    
+    // 视图状态保存
+    QString m_selectedItemId;      // 当前选中项的 ID
+    QStringList m_expandedItemIds; // 展开项的 ID 列表
 };
 
 #endif // MENUMANAGER_H

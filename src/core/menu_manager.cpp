@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QTimer>
 
 MenuManager::MenuManager(QObject *parent)
     : QObject(parent)
@@ -45,9 +46,30 @@ bool MenuManager::saveConfiguration(const QString &filePath) {
         return false;
     }
     
+    // 设置保存标志，避免触发文件监控的重新加载
+    m_isSaving = true;
+    
+    // 临时断开文件监控信号，避免触发MenuFileModel的刷新
+    disconnect(m_watcher, &FileWatcher::fileChanged,
+               this, &MenuManager::onFileChanged);
+    disconnect(m_watcher, &FileWatcher::directoryChanged,
+               this, &MenuManager::onDirectoryChanged);
+    
     // 从模型获取配置数据并保存
     ConfigParser::ConfigData data = model->getConfigData();
-    if (!m_writer.writeToFile(filePath, data)) {
+    bool success = m_writer.writeToFile(filePath, data);
+    
+    // 延迟重置保存标志并重新连接信号
+    QTimer::singleShot(200, this, [this]() {
+        m_isSaving = false;
+        // 重新连接文件监控信号
+        connect(m_watcher, &FileWatcher::fileChanged,
+                this, &MenuManager::onFileChanged);
+        connect(m_watcher, &FileWatcher::directoryChanged,
+                this, &MenuManager::onDirectoryChanged);
+    });
+    
+    if (!success) {
         emit errorOccurred("保存配置文件失败");
         return false;
     }
@@ -252,6 +274,12 @@ QString MenuManager::exportToJson(const QString &configFile) {
 void MenuManager::onFileChanged(const QString &filePath) {
     qDebug() << "MenuManager::onFileChanged called for:" << filePath;
     
+    // 如果正在保存文件，则跳过重新加载（避免循环）
+    if (m_isSaving) {
+        qDebug() << "Skipping file change handling during save operation";
+        return;
+    }
+    
     // 检查文件是否仍然存在（可能是删除操作）
     if (!QFile::exists(filePath)) {
         qDebug() << "File no longer exists:" << filePath;
@@ -310,4 +338,19 @@ void MenuManager::onDirectoryChanged(const QString &dirPath) {
     
     // 重新扫描目录中的文件
     m_watcher->watchDirectory(dirPath);
+}
+
+void MenuManager::saveViewState(const QString &selectedItemId, const QStringList &expandedItemIds) {
+    qDebug() << "MenuManager::saveViewState called - selectedItemId:" << selectedItemId 
+             << "expandedItemIds:" << expandedItemIds;
+    m_selectedItemId = selectedItemId;
+    m_expandedItemIds = expandedItemIds;
+}
+
+QString MenuManager::getSelectedItemId() const {
+    return m_selectedItemId;
+}
+
+QStringList MenuManager::getExpandedItemIds() const {
+    return m_expandedItemIds;
 }

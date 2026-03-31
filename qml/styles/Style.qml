@@ -57,12 +57,14 @@ QtObject {
     })
     
     // 尺寸
+    readonly property int inset: 2
     readonly property int spacing: 6
     readonly property int padding: 8
     readonly property int borderRadius: 4
     readonly property int itemHeight: 40
     readonly property int toolbarHeight: 50
     
+    
     // 动画
-    readonly property int animationDuration: 200
+    readonly property int animationDuration: 150
 }

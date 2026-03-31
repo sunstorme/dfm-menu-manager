@@ -8,7 +8,7 @@ import "qrc:/qml/styles" as Styles
 
 Dialog {
     id: root
-    title: qsTr("选择文件类型")
+    title: qsTr("Select File Types")
     modal: true
     width: 800
     height: 600
@@ -87,7 +87,7 @@ Dialog {
                 id: searchField
                 width: parent.width - toggleAddButton.width - parent.spacing
                 height: parent.height
-                placeholderText: qsTr("搜索文件类型...")
+                placeholderText: qsTr("Search file types...")
                 font: Styles.Style.bodyFont
                 
                 onTextChanged: {
@@ -107,7 +107,7 @@ Dialog {
                 id: toggleAddButton
                 width: Styles.Style.itemHeight * 2
                 height: parent.height
-                text: addPanelVisible ? "▼ " + qsTr("收起") : "▶ " + qsTr("添加")
+                text: addPanelVisible ? "▼ " + qsTr("Collapse") : "▶ " + qsTr("Add")
                 
                 onClicked: {
                     addPanelVisible = !addPanelVisible
@@ -152,7 +152,7 @@ Dialog {
                         id: newSuffixField
                         width: 150
                         height: parent.height
-                        placeholderText: qsTr("后缀（如：xyz）")
+                        placeholderText: qsTr("Suffix (e.g.: xyz)")
                         font: Styles.Style.bodyFont
                         
                         background: Rectangle {
@@ -167,7 +167,7 @@ Dialog {
                         id: newNameField
                         width: 200
                         height: parent.height
-                        placeholderText: qsTr("类型名称（如：XYZ文件）")
+                        placeholderText: qsTr("Type name (e.g.: XYZ File)")
                         font: Styles.Style.bodyFont
                         
                         background: Rectangle {
@@ -205,7 +205,7 @@ Dialog {
                     DButton {
                         width: 80
                         height: parent.height
-                        text: qsTr("添加")
+                        text: qsTr("Add")
                         
                         onClicked: {
                             addCustomFileType(
@@ -246,8 +246,8 @@ Dialog {
                     border.width: 0
                     
                     property var statusItems: [
-                        {text: qsTr("已选"), value: "selected"},
-                        {text: qsTr("未选"), value: "unselected"}
+                        {text: qsTr("Selected"), value: "selected"},
+                        {text: qsTr("Unselected"), value: "unselected"}
                     ]
                     
                     allItems: statusItems
@@ -270,7 +270,7 @@ Dialog {
                     Layout.alignment: Qt.AlignCenter
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    text: qsTr("文件类型")
+                    text: qsTr("File Type")
                 }
 
                 DMultiSelectComboBox {
@@ -425,7 +425,7 @@ Dialog {
                 id: cancelButton
                 anchors.right: parent.right
                 height: parent.height
-                text: qsTr("取消")
+                text: qsTr("Cancel")
                 
                 onClicked: {
                     root.reject()
@@ -437,7 +437,7 @@ Dialog {
                 anchors.right: cancelButton.left
                 anchors.rightMargin: Styles.Style.spacing
                 height: parent.height
-                text: qsTr("确定")
+                text: qsTr("OK")
                 
                 onClicked: {
                     root.accept()

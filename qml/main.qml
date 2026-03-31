@@ -161,8 +161,27 @@ ApplicationWindow {
                             }
                             root.editingDelegate.isEditing = false
                         }
+                        
+                        // 记录展开状态变化
+                        var newExpandedState = !delegateItem.expanded
+                        var itemId = model.id || ""
+                        if (itemId !== "") {
+                            if (newExpandedState) {
+                                // 展开：添加到列表
+                                if (savedExpandedItemIds.indexOf(itemId) < 0) {
+                                    savedExpandedItemIds.push(itemId)
+                                }
+                            } else {
+                                // 折叠：从列表移除
+                                var index = savedExpandedItemIds.indexOf(itemId)
+                                if (index >= 0) {
+                                    savedExpandedItemIds.splice(index, 1)
+                                }
+                            }
+                        }
+                        
                         treeView.toggleExpanded(row)
-                        console.log("Toggle expand:", model.name, "expanded:", !delegateItem.expanded, "hasChildren:", delegateItem.hasChildren)
+                        console.log("Toggle expand:", model.name, "expanded:", newExpandedState, "hasChildren:", delegateItem.hasChildren)
                     }
                 }
             }
@@ -361,7 +380,7 @@ ApplicationWindow {
                             border.width: 1
                             radius: Styles.Style.borderRadius
                             
-                            implicitHeight: userHeader.height + (userExpanded ? userContent.height + Styles.Style.padding : 0)
+                            implicitHeight: userHeader.height + (userExpanded ? userContent.height + 2 * Styles.Style.padding : 0)
                             
                             Behavior on implicitHeight {
                                 NumberAnimation {
@@ -467,7 +486,7 @@ ApplicationWindow {
                             border.width: 1
                             radius: Styles.Style.borderRadius
                             
-                            implicitHeight: systemHeader.height + (systemExpanded ? systemContent.height + Styles.Style.padding : 0)
+                            implicitHeight: systemHeader.height + (systemExpanded ? systemContent.height + 2 * Styles.Style.padding : 0)
                             
                             Behavior on implicitHeight {
                                 NumberAnimation {
@@ -715,6 +734,7 @@ ApplicationWindow {
                             }
                             
                             TextField {
+                                id: rootCommentField
                                 width: parent.width
                                 height: Styles.Style.itemHeight
                                 font: Styles.Style.bodyFont
@@ -725,6 +745,25 @@ ApplicationWindow {
                                     border.color: Styles.Style.borderColor
                                     border.width: 1
                                     radius: Styles.Style.borderRadius
+                                }
+                                
+                                onEditingFinished: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "comment", text)
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                                
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "comment", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -741,6 +780,7 @@ ApplicationWindow {
                             }
                             
                             TextField {
+                                id: rootCommentLocalField
                                 width: parent.width
                                 height: Styles.Style.itemHeight
                                 font: Styles.Style.bodyFont
@@ -751,6 +791,25 @@ ApplicationWindow {
                                     border.color: Styles.Style.borderColor
                                     border.width: 1
                                     radius: Styles.Style.borderRadius
+                                }
+                                
+                                onEditingFinished: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "commentLocal", text)
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                                
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "commentLocal", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -767,6 +826,7 @@ ApplicationWindow {
                             }
                             
                             TextField {
+                                id: rootVersionField
                                 width: parent.width
                                 height: Styles.Style.itemHeight
                                 font: Styles.Style.bodyFont
@@ -777,6 +837,25 @@ ApplicationWindow {
                                     border.color: Styles.Style.borderColor
                                     border.width: 1
                                     radius: Styles.Style.borderRadius
+                                }
+                                
+                                onEditingFinished: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "version", text)
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                                
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "version", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -800,6 +879,7 @@ ApplicationWindow {
                             }
                             
                             TextField {
+                                id: menuNameField
                                 width: parent.width
                                 height: Styles.Style.itemHeight
                                 font: Styles.Style.bodyFont
@@ -810,6 +890,25 @@ ApplicationWindow {
                                     border.color: Styles.Style.borderColor
                                     border.width: 1
                                     radius: Styles.Style.borderRadius
+                                }
+                                
+                                onEditingFinished: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "name", text)
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                                
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "name", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -826,6 +925,7 @@ ApplicationWindow {
                             }
                             
                             TextField {
+                                id: menuNameLocalField
                                 width: parent.width
                                 height: Styles.Style.itemHeight
                                 font: Styles.Style.bodyFont
@@ -836,6 +936,25 @@ ApplicationWindow {
                                     border.color: Styles.Style.borderColor
                                     border.width: 1
                                     radius: Styles.Style.borderRadius
+                                }
+                                
+                                onEditingFinished: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "nameLocal", text)
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                                
+                                Keys.onPressed: function(event) {
+                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "nameLocal", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                        event.accepted = true
+                                    }
                                 }
                             }
                         }
@@ -858,24 +977,154 @@ ApplicationWindow {
                                 columnSpacing: 10
                                 
                                 CheckBox {
+                                    id: singleFileCheckBox
                                     text: "SingleFile"
                                     checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleFile") >= 0 : false
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel) {
+                                            var types = currentItem.menuTypes ? currentItem.menuTypes.slice() : []
+                                            if (checked) {
+                                                if (types.indexOf("SingleFile") < 0) {
+                                                    types.push("SingleFile")
+                                                }
+                                            } else {
+                                                var idx = types.indexOf("SingleFile")
+                                                if (idx >= 0) {
+                                                    types.splice(idx, 1)
+                                                }
+                                            }
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "menuTypes", types)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
                                 }
                                 CheckBox {
+                                    id: multiFilesCheckBox
                                     text: "MultiFiles"
                                     checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("MultiFiles") >= 0 : false
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel) {
+                                            var types = currentItem.menuTypes ? currentItem.menuTypes.slice() : []
+                                            if (checked) {
+                                                if (types.indexOf("MultiFiles") < 0) {
+                                                    types.push("MultiFiles")
+                                                }
+                                            } else {
+                                                var idx = types.indexOf("MultiFiles")
+                                                if (idx >= 0) {
+                                                    types.splice(idx, 1)
+                                                }
+                                            }
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "menuTypes", types)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
                                 }
                                 CheckBox {
+                                    id: filemanagerCheckBox
                                     text: "Filemanager"
                                     checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("Filemanager") >= 0 : false
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel) {
+                                            var types = currentItem.menuTypes ? currentItem.menuTypes.slice() : []
+                                            if (checked) {
+                                                if (types.indexOf("Filemanager") < 0) {
+                                                    types.push("Filemanager")
+                                                }
+                                            } else {
+                                                var idx = types.indexOf("Filemanager")
+                                                if (idx >= 0) {
+                                                    types.splice(idx, 1)
+                                                }
+                                            }
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "menuTypes", types)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
                                 }
                                 CheckBox {
+                                    id: singleDirCheckBox
                                     text: "SingleDir"
                                     checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleDir") >= 0 : false
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel) {
+                                            var types = currentItem.menuTypes ? currentItem.menuTypes.slice() : []
+                                            if (checked) {
+                                                if (types.indexOf("SingleDir") < 0) {
+                                                    types.push("SingleDir")
+                                                }
+                                            } else {
+                                                var idx = types.indexOf("SingleDir")
+                                                if (idx >= 0) {
+                                                    types.splice(idx, 1)
+                                                }
+                                            }
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "menuTypes", types)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
                                 }
                                 CheckBox {
+                                    id: blankSpaceCheckBox
                                     text: "BlankSpace"
                                     checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("BlankSpace") >= 0 : false
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel) {
+                                            var types = currentItem.menuTypes ? currentItem.menuTypes.slice() : []
+                                            if (checked) {
+                                                if (types.indexOf("BlankSpace") < 0) {
+                                                    types.push("BlankSpace")
+                                                }
+                                            } else {
+                                                var idx = types.indexOf("BlankSpace")
+                                                if (idx >= 0) {
+                                                    types.splice(idx, 1)
+                                                }
+                                            }
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "menuTypes", types)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                                                
+                        // PosNum
+                        Column {
+                            width: parent.width
+                            spacing: 5
+                            
+                            Text {
+                                text: qsTr("Position Number")
+                                font: Styles.Style.h3Font
+                                color: Styles.Style.secondaryTextColor
+                            }
+                            
+                            SpinBox {
+                                id: positionSpinBox
+                                width: parent.width
+                                height: Styles.Style.itemHeight
+                                from: 1
+                                to: 100
+                                value: currentItem ? currentItem.positionNumber || 1 : 1
+                                font: Styles.Style.bodyFont
+                                
+                                onValueModified: {
+                                    if (currentItem && currentMenuModel) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "positionNumber", value)
+                                        menuManager.saveCurrentModel()
+                                    }
                                 }
                             }
                         }
@@ -907,7 +1156,7 @@ ApplicationWindow {
                                         height: parent.height
                                         wrapMode: TextArea.Wrap
                                         font: Styles.Style.bodyFont
-                                        placeholderText: qsTr("输入支持的后缀，用冒号分隔，如：mp4:avi:mkv")
+                                        placeholderText: qsTr("Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv")
                                         text: {
                                             if (currentItem && currentItem.supportSuffix) {
                                                 return currentItem.supportSuffix.join(":")
@@ -924,9 +1173,12 @@ ApplicationWindow {
                                         
                                         onTextChanged: {
                                             // 更新当前项的后缀列表
-                                            if (currentItem) {
+                                            if (currentItem && currentMenuModel) {
                                                 var suffixes = text.split(":").filter(function(s) { return s.trim() !== "" })
                                                 currentItem.supportSuffix = suffixes
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "supportSuffix", suffixes)
+                                                menuManager.saveCurrentModel()
                                             }
                                         }
                                     }
@@ -936,33 +1188,12 @@ ApplicationWindow {
                                     id: selectButton
                                     width: 80
                                     // height: parent.height
-                                    text: qsTr("选择")
-                                     
+                                    text: qsTr("Select")
+                                      
                                     onClicked: {
                                         fileTypeSelectorDialog.open()
                                     }
                                 }
-                            }
-                        }
-                        
-                        // PosNum
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Position Number")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            SpinBox {
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                from: 1
-                                to: 100
-                                value: currentItem ? currentItem.positionNumber || 1 : 1
-                                font: Styles.Style.bodyFont
                             }
                         }
                         
@@ -978,17 +1209,33 @@ ApplicationWindow {
                                 color: Styles.Style.secondaryTextColor
                             }
                             
-                            TextField {
+                            ScrollView {
                                 width: parent.width
-                                height: Styles.Style.itemHeight
-                                font: Styles.Style.bodyFont
-                                text: currentItem ? currentItem.execCommand || "" : ""
+                                height: Styles.Style.itemHeight * 3
+                                clip: true
                                 
-                                background: Rectangle {
-                                    color: Styles.Style.backgroundColor
-                                    border.color: Styles.Style.borderColor
-                                    border.width: 1
-                                    radius: Styles.Style.borderRadius
+                                TextArea {
+                                    id: execCommandField
+                                    width: parent.width
+                                    height: parent.height
+                                    wrapMode: TextArea.Wrap
+                                    font: Styles.Style.bodyFont
+                                    text: currentItem ? currentItem.execCommand || "" : ""
+                                    
+                                    background: Rectangle {
+                                        color: Styles.Style.backgroundColor
+                                        border.color: Styles.Style.borderColor
+                                        border.width: 1
+                                        radius: Styles.Style.borderRadius
+                                    }
+                                    
+                                    onEditingFinished: {
+                                        if (currentItem && currentMenuModel) {
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "execCommand", text)
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1345,6 +1592,10 @@ ApplicationWindow {
     // 当前正在编辑的 delegate
     property var editingDelegate: null
     
+    // 视图状态保存
+    property string savedSelectedItemId: ""
+    property var savedExpandedItemIds: []  // 展开的节点ID列表
+    
     // 保存列宽
     property real filePanelWidth: 350
     property real menuEditorWidth: 630
@@ -1365,9 +1616,132 @@ ApplicationWindow {
                 console.log("=== Exported JSON ===")
                 console.log(jsonString)
                 console.log("=== End of JSON ===")
+                
+                // 恢复视图状态
+                restoreViewState()
             } else {
                 console.log("Failed to load menu model")
             }
+        }
+    }
+    
+    // 连接当前模型信号，保存视图状态
+    Connections {
+        target: currentMenuModel
+        function onModelAboutToReset() {
+            console.log("Model about to reset, saving view state")
+            saveViewState()
+        }
+    }
+    
+    // 保存视图状态的函数
+    function saveViewState() {
+        console.log("=== saveViewState called ===")
+        console.log("Current item:", currentItem)
+        if (currentItem) {
+            savedSelectedItemId = currentItem.id || ""
+            console.log("Saved selected item ID:", savedSelectedItemId, "name:", currentItem.name)
+        } else {
+            savedSelectedItemId = ""
+            console.log("No current item, savedSelectedItemId set to empty")
+        }
+        console.log("Saved expanded item IDs:", savedExpandedItemIds)
+        menuManager.saveViewState(savedSelectedItemId, savedExpandedItemIds)
+        console.log("=== saveViewState completed ===")
+    }
+    
+    // 恢复视图状态的函数
+    function restoreViewState() {
+        console.log("=== restoreViewState called ===")
+        // 从 MenuManager 获取保存的状态
+        var selectedId = menuManager.getSelectedItemId()
+        var expandedIds = menuManager.getExpandedItemIds()
+        
+        console.log("Restoring view state - selectedId:", selectedId, "expandedIds:", expandedIds)
+        console.log("Current menu model:", currentMenuModel)
+        
+        // 延迟执行，确保模型已经完全加载
+        restoreTimer.expandedIds = expandedIds
+        restoreTimer.selectedId = selectedId
+        restoreTimer.start()
+    }
+    
+    // 定时器，用于延迟恢复视图状态
+    Timer {
+        id: restoreTimer
+        interval: 300  // 增加延迟时间到 300ms
+        property var expandedIds: []
+        property string selectedId: ""
+        
+        onTriggered: {
+            console.log("=== restoreTimer triggered ===")
+            console.log("Expanded IDs to restore:", expandedIds.length, "items")
+            console.log("Selected ID to restore:", selectedId)
+            console.log("Current menu model:", currentMenuModel)
+            
+            // 恢复展开状态
+            if (currentMenuModel && expandedIds.length > 0) {
+                for (var i = 0; i < expandedIds.length; i++) {
+                    var itemId = expandedIds[i]
+                    var index = currentMenuModel.getIndex(itemId)
+                    console.log("Expanding item:", itemId, "index valid:", index.valid)
+                    if (index.valid) {
+                        menuTreeView.expand(index.row)
+                        console.log("Expanded item:", itemId, "at row:", index.row)
+                    }
+                }
+            }
+            
+            // 恢复选择状态
+            if (currentMenuModel) {
+                var found = false
+                var allItems = currentMenuModel.getAllItems()
+                
+                console.log("Searching for selected item:", selectedId, "in", allItems.length, "items")
+                
+                // 遍历所有项，查找匹配的 ID
+                for (var j = 0; j < allItems.length; j++) {
+                    var itemData = allItems[j]
+                    console.log("Checking item", j, "id:", itemData.id, "name:", itemData.name)
+                    if (itemData.id === selectedId) {
+                        // 找到匹配的项，设置为当前项
+                        currentItem = itemData
+                        
+                        // 设置 TreeView 的选中状态（使用 selectionModel）
+                        var modelIndex = currentMenuModel.getIndex(selectedId)
+                        if (modelIndex.valid) {
+                            // 使用 select 方法选中行
+                            menuTreeView.selectionModel.select(modelIndex, ItemSelectionModel.Select)
+                            menuTreeView.selectionModel.setCurrentIndex(modelIndex, ItemSelectionModel.SelectCurrent)
+                            console.log("✓ Set TreeView selection to row:", modelIndex.row)
+                        }
+                        
+                        console.log("✓ Restored selected item:", selectedId, "name:", itemData.name)
+                        found = true
+                        break
+                    }
+                }
+                
+                // 如果找不到之前的选择项，默认选择第一项（跳过根节点）
+                if (!found && allItems.length > 1) {
+                    currentItem = allItems[1]  // 跳过根节点，选择第一个子节点
+                    
+                    // 设置 TreeView 的选中状态
+                    var firstIndex = currentMenuModel.getIndex(allItems[1].id)
+                    if (firstIndex.valid) {
+                        menuTreeView.selectionModel.select(firstIndex, ItemSelectionModel.Select)
+                        menuTreeView.selectionModel.setCurrentIndex(firstIndex, ItemSelectionModel.SelectCurrent)
+                        console.log("✓ Set TreeView selection to first item row:", firstIndex.row)
+                    }
+                    
+                    console.log("✗ Selected first item as default:", currentItem.name, "id:", currentItem.id)
+                } else if (!found) {
+                    console.log("✗ No items found to select")
+                }
+            } else {
+                console.log("✗ No current menu model")
+            }
+            console.log("=== restoreTimer completed ===")
         }
     }
     
@@ -1391,8 +1765,12 @@ ApplicationWindow {
         
         onAccepted: {
             // 确认选择，更新后缀列表
-            if (currentItem) {
+            if (currentItem && currentMenuModel) {
                 currentItem.supportSuffix = selectedSuffixes.slice()  // 复制数组
+                // 更新模型和保存到文件
+                var index = currentMenuModel.getIndex(currentItem.id)
+                currentMenuModel.updateItem(index, "supportSuffix", selectedSuffixes)
+                menuManager.saveCurrentModel()
                 // 更新文本框显示
                 suffixTextArea.text = selectedSuffixes.join(":")
                 console.log("Suffixes updated:", selectedSuffixes.join(":"))

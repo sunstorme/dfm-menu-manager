@@ -448,6 +448,9 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
 }
 
 void MenuTreeModel::setConfigData(const ConfigParser::ConfigData &data) {
+    // 发出模型即将重置的信号，以便保存视图状态
+    emit modelAboutToReset();
+    
     beginResetModel();
     
     // 清空旧数据
@@ -506,6 +509,15 @@ QVariantList MenuTreeModel::getAllItems() const {
         itemMap["nameLocal"] = item->nameLocal.isEmpty() ? item->name : item->nameLocal;
         itemMap["level"] = item->level;
         itemMap["hasChildren"] = !item->subItems.isEmpty();
+        itemMap["isSystem"] = item->isSystem;
+        itemMap["isRoot"] = item->isRoot;
+        itemMap["menuTypes"] = item->menuTypes;
+        itemMap["supportSuffix"] = item->supportSuffix;
+        itemMap["comment"] = item->comment;
+        itemMap["commentLocal"] = item->commentLocal;
+        itemMap["execCommand"] = item->execCommand;
+        itemMap["positionNumber"] = item->positionNumber;
+        itemMap["version"] = item->version;
         
         result.append(itemMap);
         

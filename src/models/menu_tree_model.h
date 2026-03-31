@@ -67,6 +67,7 @@ public:
     
 signals:
     void errorOccurred(const QString &message);
+    void modelAboutToReset();  // 模型即将重置信号，用于保存视图状态
     
 private:
     struct TreeItem {

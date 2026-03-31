@@ -51,11 +51,11 @@ Rectangle {
         
         text: {
             if (selectedItems.length === 0) {
-                return qsTr("全部")
+                return qsTr("All")
             } else if (selectedItems.length === 1) {
                 return selectedItems[0][displayRole] || selectedItems[0].toString()
             } else {
-                return qsTr("已选 %1 项").arg(selectedItems.length)
+                return qsTr("%1 items selected").arg(selectedItems.length)
             }
         }
     }
