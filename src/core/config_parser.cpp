@@ -83,15 +83,23 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
                 currentAction->menuTypes = parseList(value, ":");
             } else if (key == "X-DFM-SupportSuffix") {
                 currentAction->supportSuffix = parseList(value, ":");
-            } else if (key.startsWith("PosNum")) {
+            } else if (key == "PosNum") {
                 currentAction->positionNumber = value.toInt();
+            } else if (key == "PosNum-SingleFile") {
+                currentAction->positionNumberSingleFile = value.toInt();
+            } else if (key == "PosNum-MultiFiles") {
+                currentAction->positionNumberMultiFiles = value.toInt();
             } else if (key == "Exec") {
                 currentAction->execCommand = value;
             } else if (key == "Separator") {
+                // 保存为字符串值，同时保持向后兼容
+                currentAction->separator = value;
                 if (value == "Top") {
                     currentAction->separatorTop = true;
+                    currentAction->separatorBottom = false;
                 } else if (value == "Bottom") {
                     currentAction->separatorBottom = true;
+                    currentAction->separatorTop = false;
                 }
             }
         }

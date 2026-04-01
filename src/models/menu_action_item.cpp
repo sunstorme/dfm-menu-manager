@@ -4,6 +4,8 @@
 
 MenuActionItem::MenuActionItem()
     : positionNumber(1)
+    , positionNumberSingleFile(1)
+    , positionNumberMultiFiles(1)
     , separatorTop(false)
     , separatorBottom(false)
     , isRoot(false)

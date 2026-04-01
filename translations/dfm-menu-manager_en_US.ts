@@ -2,78 +2,6 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en_US">
 <context>
-    <name>DFileTypeSelectorDialog</name>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="11"/>
-        <source>Select File Types</source>
-        <translation>Select File Types</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="90"/>
-        <source>Search file types...</source>
-        <translation>Search file types...</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="110"/>
-        <source>Collapse</source>
-        <translation>Collapse</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="110"/>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="208"/>
-        <source>Add</source>
-        <translation>Add</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="155"/>
-        <source>Suffix (e.g.: xyz)</source>
-        <translation>Suffix (e.g.: xyz)</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="170"/>
-        <source>Type name (e.g.: XYZ File)</source>
-        <translation>Type name (e.g.: XYZ File)</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="249"/>
-        <source>Selected</source>
-        <translation>Selected</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="250"/>
-        <source>Unselected</source>
-        <translation>Unselected</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="273"/>
-        <source>File Type</source>
-        <translation>File Type</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="428"/>
-        <source>Cancel</source>
-        <translation>Cancel</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DFileTypeSelectorDialog.qml" line="440"/>
-        <source>OK</source>
-        <translation>OK</translation>
-    </message>
-</context>
-<context>
-    <name>DMultiSelectComboBox</name>
-    <message>
-        <location filename="../qml/components/DMultiSelectComboBox.qml" line="54"/>
-        <source>All</source>
-        <translation>All</translation>
-    </message>
-    <message>
-        <location filename="../qml/components/DMultiSelectComboBox.qml" line="58"/>
-        <source>%1 items selected</source>
-        <translation>%1 items selected</translation>
-    </message>
-</context>
-<context>
     <name>main</name>
     <message>
         <location filename="../qml/main.qml" line="17"/>
@@ -81,186 +9,211 @@
         <translation>DFM Context Menu Manager</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="76"/>
+        <location filename="../qml/main.qml" line="151"/>
         <source>Add</source>
         <translation>Add</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="79"/>
+        <location filename="../qml/main.qml" line="154"/>
         <source>Add Sibling Menu</source>
         <translation>Add Sibling Menu</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="83"/>
-        <location filename="../qml/main.qml" line="95"/>
-        <location filename="../qml/main.qml" line="678"/>
+        <location filename="../qml/main.qml" line="158"/>
+        <location filename="../qml/main.qml" line="170"/>
+        <location filename="../qml/main.qml" line="804"/>
         <source>New Menu</source>
         <translation>New Menu</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="90"/>
+        <location filename="../qml/main.qml" line="165"/>
         <source>Add Child Menu</source>
         <translation>Add Child Menu</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="105"/>
-        <location filename="../qml/main.qml" line="1526"/>
+        <location filename="../qml/main.qml" line="180"/>
+        <location filename="../qml/main.qml" line="1634"/>
         <source>Rename</source>
         <translation>Rename</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="117"/>
-        <location filename="../qml/main.qml" line="1539"/>
+        <location filename="../qml/main.qml" line="192"/>
+        <location filename="../qml/main.qml" line="1647"/>
         <source>Delete</source>
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="109"/>
+        <location filename="../qml/main.qml" line="206"/>
         <source>Expand</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="117"/>
+        <location filename="../qml/main.qml" line="215"/>
         <source>Collapse</source>
-        <translation type="unfinished"></translation>
+        <translation type="unfinished">Collapse</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="125"/>
+        <location filename="../qml/main.qml" line="224"/>
         <source>Expand All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="133"/>
+        <location filename="../qml/main.qml" line="234"/>
         <source>Collapse All</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="288"/>
+        <location filename="../qml/main.qml" line="482"/>
         <source>Search configuration files...</source>
         <translation>Search configuration files...</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="404"/>
+        <location filename="../qml/main.qml" line="529"/>
         <source>User Configuration</source>
         <translation>User Configuration</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="510"/>
+        <location filename="../qml/main.qml" line="635"/>
         <source>System Configuration</source>
         <translation>System Configuration</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="606"/>
+        <location filename="../qml/main.qml" line="731"/>
         <source>Menu Structure Editor</source>
         <translation>Menu Structure Editor</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="621"/>
+        <location filename="../qml/main.qml" line="746"/>
         <source>Please select a configuration file</source>
         <translation>Please select a configuration file</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="622"/>
-        <source>Right-click to add menu items</source>
-        <translation>Right-click to add menu items</translation>
-    </message>
-    <message>
-        <location filename="../qml/main.qml" line="673"/>
+        <location filename="../qml/main.qml" line="800"/>
         <source>Add Menu</source>
         <translation>Add Menu</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="714"/>
+        <location filename="../qml/main.qml" line="840"/>
         <source>Property Editor: </source>
         <translation>Property Editor: </translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="714"/>
+        <location filename="../qml/main.qml" line="840"/>
         <source>Property Editor</source>
         <translation>Property Editor</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="731"/>
+        <location filename="../qml/main.qml" line="857"/>
         <source>Description</source>
         <translation>Description</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="777"/>
+        <location filename="../qml/main.qml" line="887"/>
         <source>Description (Chinese)</source>
         <translation>Description (Chinese)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="823"/>
+        <location filename="../qml/main.qml" line="917"/>
         <source>Version</source>
         <translation>Version</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="876"/>
+        <location filename="../qml/main.qml" line="954"/>
         <source>Menu Name</source>
         <translation>Menu Name</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="922"/>
+        <location filename="../qml/main.qml" line="984"/>
         <source>Menu Name (Chinese)</source>
         <translation>Menu Name (Chinese)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="968"/>
+        <location filename="../qml/main.qml" line="1014"/>
         <source>Menu Type</source>
         <translation>Menu Type</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1138"/>
+        <location filename="../qml/main.qml" line="1266"/>
         <source>Supported Suffixes</source>
         <translation>Supported Suffixes</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1108"/>
+        <location filename="../qml/main.qml" line="1069"/>
         <source>Position Number</source>
         <translation>Position Number</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1159"/>
+        <location filename="../qml/main.qml" line="747"/>
+        <source>Loading configuration...</source>
+        <translation>Loading configuration...</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1117"/>
+        <source>Position Number (SingleFile)</source>
+        <translation>Position Number (SingleFile)</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1165"/>
+        <source>Position Number (MultiFiles)</source>
+        <translation>Position Number (MultiFiles)</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1213"/>
+        <source>Separator</source>
+        <translation>Separator</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1224"/>
+        <source>Top</source>
+        <translation>Top</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1242"/>
+        <source>Bottom</source>
+        <translation>Bottom</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="1286"/>
         <source>Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv</source>
         <translation>Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1191"/>
+        <location filename="../qml/main.qml" line="1313"/>
         <source>Select</source>
         <translation>Select</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1207"/>
+        <location filename="../qml/main.qml" line="1329"/>
         <source>Executable Command</source>
         <translation>Executable Command</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1250"/>
+        <location filename="../qml/main.qml" line="1368"/>
         <source>Please select a menu item</source>
         <translation>Please select a menu item</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1379"/>
+        <location filename="../qml/main.qml" line="1497"/>
         <source>System</source>
         <translation>System</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1500"/>
+        <location filename="../qml/main.qml" line="1609"/>
         <source>Refresh List</source>
         <translation>Refresh List</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1511"/>
+        <location filename="../qml/main.qml" line="1620"/>
         <source>New File</source>
         <translation>New File</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1554"/>
+        <location filename="../qml/main.qml" line="1662"/>
         <source>Open Containing Folder</source>
         <translation>Open Containing Folder</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="1572"/>
+        <location filename="../qml/main.qml" line="1680"/>
         <source>Open File</source>
         <translation>Open File</translation>
     </message>

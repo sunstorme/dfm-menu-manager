@@ -13,6 +13,7 @@
         <file>../../qml/components/DSplitView.qml</file>
         <file>../../qml/components/DSpinBox.qml</file>
         <file>../../qml/components/DBackground.qml</file>
+        <file>../../qml/components/DRadioButton.qml</file>
         <file>file_types.json</file>
     </qresource>
 </RCC>

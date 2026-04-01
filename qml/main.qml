@@ -826,21 +826,20 @@ ApplicationWindow {
             ScrollView {
                 anchors.fill: parent
                 anchors.margins: Styles.Style.padding
+                contentWidth: availableWidth
+                contentHeight: column.implicitHeight
                 
-                Item {
+                Column {
+                    id: column
                     width: parent.width
-                    height: childrenRect.height
+                    spacing: Styles.Style.spacing * 2
                     
-                    Column {
-                        width: parent.width
-                        spacing: Styles.Style.spacing * 2
-                        
-                        Text {
-                            anchors.left: parent.left
-                            text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
-                            font: Styles.Style.h1Font
-                            color: Styles.Style.textColor
-                        }
+                    Text {
+                        anchors.left: parent.left
+                        text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
+                        font: Styles.Style.h1Font
+                        color: Styles.Style.textColor
+                    }
                     
                     // 根节点属性
                     Column {
@@ -1108,6 +1107,155 @@ ApplicationWindow {
                             }
                         }
                         
+                        // PosNum-SingleFile
+                        Column {
+                            width: parent.width
+                            spacing: 5
+                            
+                            Text {
+                                text: qsTr("Position Number (SingleFile)")
+                                font: Styles.Style.h3Font
+                                color: Styles.Style.secondaryTextColor
+                            }
+                            
+                            Components.DSpinBox {
+                                id: positionSingleFileSpinBox
+                                width: parent.width
+                                height: Styles.Style.itemHeight
+                                from: 1
+                                to: 100
+                                value: currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+
+                                // 监听 currentItem 变化，恢复绑定
+                                Connections {
+                                    target: root
+                                    function onCurrentItemChanged() {
+                                        // 恢复 value 绑定
+                                        positionSingleFileSpinBox.value = Qt.binding(function() {
+                                            return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                        })
+                                    }
+                                }
+
+                                onUserModified: {
+                                    if (currentItem && currentMenuModel && originalItemValues) {
+                                        // 直接更新模型并保存
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "positionNumberSingleFile", value)
+                                        // 更新原始值以避免重复保存
+                                        originalItemValues.positionNumberSingleFile = value
+                                        // 保存到文件
+                                        menuManager.saveCurrentModel()
+                                        // 恢复绑定，确保切换项时值能正确更新
+                                        positionSingleFileSpinBox.value = Qt.binding(function() {
+                                            return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // PosNum-MultiFiles
+                        Column {
+                            width: parent.width
+                            spacing: 5
+                            
+                            Text {
+                                text: qsTr("Position Number (MultiFiles)")
+                                font: Styles.Style.h3Font
+                                color: Styles.Style.secondaryTextColor
+                            }
+                            
+                            Components.DSpinBox {
+                                id: positionMultiFilesSpinBox
+                                width: parent.width
+                                height: Styles.Style.itemHeight
+                                from: 1
+                                to: 100
+                                value: currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+
+                                // 监听 currentItem 变化，恢复绑定
+                                Connections {
+                                    target: root
+                                    function onCurrentItemChanged() {
+                                        // 恢复 value 绑定
+                                        positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                            return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                        })
+                                    }
+                                }
+
+                                onUserModified: {
+                                    if (currentItem && currentMenuModel && originalItemValues) {
+                                        // 直接更新模型并保存
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "positionNumberMultiFiles", value)
+                                        // 更新原始值以避免重复保存
+                                        originalItemValues.positionNumberMultiFiles = value
+                                        // 保存到文件
+                                        menuManager.saveCurrentModel()
+                                        // 恢复绑定，确保切换项时值能正确更新
+                                        positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                            return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Separator
+                        Column {
+                            width: parent.width
+                            spacing: 5
+                            
+                            Text {
+                                text: qsTr("Separator")
+                                font: Styles.Style.h3Font
+                                color: Styles.Style.secondaryTextColor
+                            }
+                            
+                            Row {
+                                width: parent.width
+                                spacing: Styles.Style.spacing * 4
+                                
+                                Components.DRadioButton {
+                                    id: separatorTopRadio
+                                    text: qsTr("Top")
+                                    checked: currentItem && currentItem.separator === "Top"
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            // 直接更新模型并保存
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "separator", "Top")
+                                            // 更新原始值以避免重复保存
+                                            originalItemValues.separator = "Top"
+                                            // 保存到文件
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
+                                }
+                                
+                                Components.DRadioButton {
+                                    id: separatorBottomRadio
+                                    text: qsTr("Bottom")
+                                    checked: currentItem && currentItem.separator === "Bottom"
+                                    
+                                    onClicked: {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            // 直接更新模型并保存
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "separator", "Bottom")
+                                            // 更新原始值以避免重复保存
+                                            originalItemValues.separator = "Bottom"
+                                            // 保存到文件
+                                            menuManager.saveCurrentModel()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
                         // X-DFM-SupportSuffix (多行输入框+选择按钮)
                         Column {
                             width: parent.width
@@ -1208,7 +1356,6 @@ ApplicationWindow {
                                 }
                             }
                         }
-                    }
                     }
                 }
                 

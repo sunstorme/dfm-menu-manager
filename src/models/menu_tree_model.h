@@ -30,6 +30,9 @@ public:
         MenuTypesRole,
         SupportSuffixRole,
         PositionNumberRole,
+        PositionNumberSingleFileRole,
+        PositionNumberMultiFilesRole,
+        SeparatorRole,
         CommentRole,
         CommentLocalRole,
         VersionRole
@@ -79,6 +82,9 @@ private:
         QStringList menuTypes;
         QStringList supportSuffix;
         int positionNumber;
+        int positionNumberSingleFile;
+        int positionNumberMultiFiles;
+        QString separator;
         QString execCommand;
         QStringList childActions;  // 子节点ID列表
         bool isRoot;

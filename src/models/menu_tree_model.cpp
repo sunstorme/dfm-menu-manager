@@ -110,6 +110,12 @@ QVariant MenuTreeModel::data(const QModelIndex &index, int role) const {
         return item->supportSuffix;
     case PositionNumberRole:
         return item->positionNumber;
+    case PositionNumberSingleFileRole:
+        return item->positionNumberSingleFile;
+    case PositionNumberMultiFilesRole:
+        return item->positionNumberMultiFiles;
+    case SeparatorRole:
+        return item->separator;
     case CommentRole:
         return item->comment;
     case CommentLocalRole:
@@ -136,6 +142,9 @@ QHash<int, QByteArray> MenuTreeModel::roleNames() const {
     roles[MenuTypesRole] = "menuTypes";
     roles[SupportSuffixRole] = "supportSuffix";
     roles[PositionNumberRole] = "positionNumber";
+    roles[PositionNumberSingleFileRole] = "positionNumberSingleFile";
+    roles[PositionNumberMultiFilesRole] = "positionNumberMultiFiles";
+    roles[SeparatorRole] = "separator";
     roles[CommentRole] = "comment";
     roles[CommentLocalRole] = "commentLocal";
     roles[VersionRole] = "version";
@@ -265,6 +274,12 @@ void MenuTreeModel::updateItem(const QModelIndex &index, const QString &role,
         item->supportSuffix = value.toStringList();
     } else if (role == "positionNumber") {
         item->positionNumber = value.toInt();
+    } else if (role == "positionNumberSingleFile") {
+        item->positionNumberSingleFile = value.toInt();
+    } else if (role == "positionNumberMultiFiles") {
+        item->positionNumberMultiFiles = value.toInt();
+    } else if (role == "separator") {
+        item->separator = value.toString();
     }
     
     emit dataChanged(index, index);
@@ -428,6 +443,9 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
                 childItem->configFile = childAction->configFile;
                 childItem->isSystem = childAction->isSystem;
                 childItem->positionNumber = childAction->positionNumber;
+                childItem->positionNumberSingleFile = childAction->positionNumberSingleFile;
+                childItem->positionNumberMultiFiles = childAction->positionNumberMultiFiles;
+                childItem->separator = childAction->separator;
                 childItem->execCommand = childAction->execCommand;
                 childItem->menuTypes = childAction->menuTypes;
                 childItem->supportSuffix = childAction->supportSuffix;
@@ -569,6 +587,9 @@ ConfigParser::ConfigData MenuTreeModel::getConfigData() const {
         actionItem->configFile = item->configFile;
         actionItem->isSystem = item->isSystem;
         actionItem->positionNumber = item->positionNumber;
+        actionItem->positionNumberSingleFile = item->positionNumberSingleFile;
+        actionItem->positionNumberMultiFiles = item->positionNumberMultiFiles;
+        actionItem->separator = item->separator;
         actionItem->execCommand = item->execCommand;
         actionItem->menuTypes = item->menuTypes;
         actionItem->supportSuffix = item->supportSuffix;

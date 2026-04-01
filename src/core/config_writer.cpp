@@ -105,11 +105,22 @@ QString ConfigWriter::formatEntry(const MenuActionItem &item) {
     // 位置
     out << "PosNum=" << item.positionNumber << "\n";
     
-    // 分隔符
-    if (item.separatorTop) {
-        out << "Separator=Top\n";
+    // 单文件位置
+    if (item.positionNumberSingleFile > 0) {
+        out << "PosNum-SingleFile=" << item.positionNumberSingleFile << "\n";
     }
-    if (item.separatorBottom) {
+    
+    // 多文件位置
+    if (item.positionNumberMultiFiles > 0) {
+        out << "PosNum-MultiFiles=" << item.positionNumberMultiFiles << "\n";
+    }
+    
+    // 分隔符
+    if (!item.separator.isEmpty()) {
+        out << "Separator=" << item.separator << "\n";
+    } else if (item.separatorTop) {
+        out << "Separator=Top\n";
+    } else if (item.separatorBottom) {
         out << "Separator=Bottom\n";
     }
     

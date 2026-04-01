@@ -27,9 +27,12 @@ public:
     QStringList menuTypes;           // 菜单类型列表 (SingleFile, MultiFiles等)
     QStringList supportSuffix;       // 支持的文件后缀
     int positionNumber;              // 位置编号
+    int positionNumberSingleFile;    // 单文件时的位置编号
+    int positionNumberMultiFiles;    // 多文件时的位置编号
     QMap<QString, int> positionByType; // 按类型的位置
-    bool separatorTop;               // 顶部分隔符
-    bool separatorBottom;            // 底部分隔符
+    QString separator;               // 分隔符位置 (Top, Bottom, 或空)
+    bool separatorTop;               // 顶部分隔符 (保留用于兼容)
+    bool separatorBottom;            // 底部分隔符 (保留用于兼容)
     
     // 动作配置
     QString execCommand;             // 执行命令
