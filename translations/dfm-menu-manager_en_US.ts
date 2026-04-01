@@ -115,7 +115,27 @@
         <translation>Delete</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="349"/>
+        <location filename="../qml/main.qml" line="109"/>
+        <source>Expand</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="117"/>
+        <source>Collapse</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="125"/>
+        <source>Expand All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="133"/>
+        <source>Collapse All</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="288"/>
         <source>Search configuration files...</source>
         <translation>Search configuration files...</translation>
     </message>

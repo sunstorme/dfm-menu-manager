@@ -115,7 +115,27 @@
         <translation>删除</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="349"/>
+        <location filename="../qml/main.qml" line="109"/>
+        <source>Expand</source>
+        <translation>展开</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="117"/>
+        <source>Collapse</source>
+        <translation>折叠</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="125"/>
+        <source>Expand All</source>
+        <translation>展开全部</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="133"/>
+        <source>Collapse All</source>
+        <translation>折叠全部</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="288"/>
         <source>Search configuration files...</source>
         <translation>搜索配置文件...</translation>
     </message>

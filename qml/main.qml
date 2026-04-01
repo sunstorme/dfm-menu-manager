@@ -71,6 +71,78 @@ ApplicationWindow {
                 return menuTreeView.model.getIndex(model.id || "")
             }
             
+            // 递归展开/折叠指定节点的所有子孙节点
+            function setExpandedRecursive(index, expand) {
+                if (!index.valid) {
+                    return
+                }
+                
+                // 获取视图中的行号
+                var viewRow = menuTreeView.rowAtIndex(index)
+                if (viewRow >= 0) {
+                    if (expand) {
+                        menuTreeView.expand(viewRow)
+                    } else {
+                        menuTreeView.collapse(viewRow)
+                    }
+                }
+                
+                // 递归处理所有子节点
+                var rowCount = currentMenuModel.rowCount(index)
+                for (var i = 0; i < rowCount; i++) {
+                    var childIndex = currentMenuModel.index(i, 0, index)
+                    setExpandedRecursive(childIndex, expand)
+                }
+            }
+            
+            // 检查指定节点的所有子孙节点是否都已展开（不包括当前节点本身）
+            function areAllDescendantsExpanded(index) {
+                if (!index.valid) {
+                    return true
+                }
+                
+                // 递归检查所有子节点
+                var rowCount = currentMenuModel.rowCount(index)
+                for (var i = 0; i < rowCount; i++) {
+                    var childIndex = currentMenuModel.index(i, 0, index)
+                    var viewRow = menuTreeView.rowAtIndex(childIndex)
+                    // 如果子节点未展开，返回false
+                    if (viewRow >= 0 && !menuTreeView.isExpanded(viewRow)) {
+                        return false
+                    }
+                    // 递归检查子节点的后代
+                    if (!areAllDescendantsExpanded(childIndex)) {
+                        return false
+                    }
+                }
+                
+                return true
+            }
+            
+            // 检查指定节点的所有子孙节点是否都已折叠（不包括当前节点本身）
+            function areAllDescendantsCollapsed(index) {
+                if (!index.valid) {
+                    return true
+                }
+                
+                // 递归检查所有子节点
+                var rowCount = currentMenuModel.rowCount(index)
+                for (var i = 0; i < rowCount; i++) {
+                    var childIndex = currentMenuModel.index(i, 0, index)
+                    var viewRow = menuTreeView.rowAtIndex(childIndex)
+                    // 如果子节点已展开，返回false
+                    if (viewRow >= 0 && menuTreeView.isExpanded(viewRow)) {
+                        return false
+                    }
+                    // 递归检查子节点的后代
+                    if (!areAllDescendantsCollapsed(childIndex)) {
+                        return false
+                    }
+                }
+                
+                return true
+            }
+            
             // 右键菜单
             Menu {
                 id: contextMenu
@@ -125,6 +197,46 @@ ApplicationWindow {
                         menuTreeView.model.removeItem(index)
                         // 保存到文件
                         menuManager.saveCurrentModel()
+                    }
+                }
+                
+                MenuSeparator {}
+                
+                MenuItem {
+                    text: qsTr("Expand")
+                    enabled: delegateItem.hasChildren > 0 && !delegateItem.expanded
+                    onTriggered: {
+                        console.log("Expand node:", model.name)
+                        treeView.expand(row)
+                    }
+                }
+                
+                MenuItem {
+                    text: qsTr("Collapse")
+                    enabled: delegateItem.hasChildren > 0 && delegateItem.expanded
+                    onTriggered: {
+                        console.log("Collapse node:", model.name)
+                        treeView.collapse(row)
+                    }
+                }
+                
+                MenuItem {
+                    text: qsTr("Expand All")
+                    enabled: delegateItem.hasChildren > 0 && !delegateItem.expanded && !areAllDescendantsExpanded(getCurrentIndex())
+                    onTriggered: {
+                        console.log("Expand all from:", model.name)
+                        var index = getCurrentIndex()
+                        setExpandedRecursive(index, true)
+                    }
+                }
+                
+                MenuItem {
+                    text: qsTr("Collapse All")
+                    enabled: delegateItem.hasChildren > 0 && delegateItem.expanded && !areAllDescendantsCollapsed(getCurrentIndex())
+                    onTriggered: {
+                        console.log("Collapse all from:", model.name)
+                        var index = getCurrentIndex()
+                        setExpandedRecursive(index, false)
                     }
                 }
             }
