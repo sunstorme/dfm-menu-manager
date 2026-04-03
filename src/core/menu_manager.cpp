@@ -185,8 +185,18 @@ bool MenuManager::validateConfig(const QString &filePath) {
 }
 
 QStringList MenuManager::getValidationErrors() {
-    // TODO: 实现获取验证错误
-    return QStringList();
+    QStringList errors;
+    
+    for (auto it = m_models.begin(); it != m_models.end(); ++it) {
+        ConfigParser::ConfigData data = it.value()->getConfigData();
+        QStringList fileErrors = ConfigParser::getValidationErrors(data);
+        
+        for (const QString &error : fileErrors) {
+            errors << QString("%1: %2").arg(it.key(), error);
+        }
+    }
+    
+    return errors;
 }
 
 MenuFileModel* MenuManager::getFileModel() {

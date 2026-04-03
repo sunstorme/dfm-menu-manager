@@ -3,6 +3,8 @@
 #include "file_utils.h"
 #include <QDir>
 #include <QStandardPaths>
+#include <QString>
+#include <QStringList>
 
 QString FileUtils::getUserConfigDir() {
     return QDir::homePath() + "/.local/share/deepin/dde-file-manager/context-menus";

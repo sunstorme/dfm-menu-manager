@@ -35,8 +35,6 @@ int main(int argc, char *argv[])
 
     // 设置高DPI属性(必须在创建QGuiApplication之前)
     LOG_DEBUG("Setting High DPI attributes...");
-    QGuiApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-    QGuiApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     LOG_DEBUG("Creating QGuiApplication...");
