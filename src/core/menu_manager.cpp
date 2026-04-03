@@ -4,6 +4,7 @@
 #include "file_watcher.h"
 #include "../utils/file_utils.h"
 #include "../utils/logger.h"
+#include "../utils/constants.h"
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -58,9 +59,9 @@ bool MenuManager::saveConfiguration(const QString &filePath) {
     // 从模型获取配置数据并保存
     ConfigParser::ConfigData data = model->getConfigData();
     bool success = m_writer.writeToFile(filePath, data);
-    
+
     // 延迟重置保存标志并重新连接信号
-    QTimer::singleShot(200, this, [this]() {
+    QTimer::singleShot(Constants::AUTO_REFRESH_DELAY_MS, this, [this]() {
         m_isSaving = false;
         // 重新连接文件监控信号
         connect(m_watcher, &FileWatcher::fileChanged,
@@ -99,20 +100,20 @@ bool MenuManager::createNewConfig(const QString &name, bool isSystem) {
     
     // 创建默认配置
     ConfigParser::ConfigData data;
-    data.version = "1.0";
-    data.comment = "New configuration";
-    data.commentLocal = "新配置";
-    data.rootActionId = "root";
-    
+    data.version = Constants::Defaults::DEFAULT_VERSION;
+    data.comment = Constants::Defaults::DEFAULT_COMMENT;
+    data.commentLocal = Constants::Defaults::DEFAULT_COMMENT_LOCAL;
+    data.rootActionId = Constants::Defaults::ROOT_ACTION_ID;
+
     // 创建根菜单项
     MenuActionItem rootItem;
-    rootItem.id = "root";
+    rootItem.id = Constants::Defaults::ROOT_ACTION_ID;
     rootItem.isRoot = true;
-    rootItem.level = 0;
+    rootItem.level = Constants::Defaults::ROOT_LEVEL;
     rootItem.configFile = filePath;
     rootItem.isSystem = isSystem;
     data.actions.append(rootItem);
-    data.actionMap["root"] = &data.actions.last();
+    data.actionMap[Constants::Defaults::ROOT_ACTION_ID] = &data.actions.last();
     
     // 写入文件
     if (!m_writer.writeToFile(filePath, data)) {
@@ -216,9 +217,9 @@ QString MenuManager::exportToJson(const QString &configFile) {
     QList<const MenuActionItem*> queue;
     
     // 从根节点开始
-    if (data.actionMap.contains("root")) {
-        queue.append(data.actionMap["root"]);
-        visited.insert("root");
+    if (data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
+        queue.append(data.actionMap[Constants::Defaults::ROOT_ACTION_ID]);
+        visited.insert(Constants::Defaults::ROOT_ACTION_ID);
     }
     
     while (!queue.isEmpty()) {

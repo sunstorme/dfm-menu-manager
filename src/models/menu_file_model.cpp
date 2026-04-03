@@ -4,6 +4,7 @@
 #include "../core/file_watcher.h"
 #include "../utils/file_utils.h"
 #include "../utils/logger.h"
+#include "../utils/constants.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QDesktopServices>
@@ -65,7 +66,7 @@ void MenuFileModel::cleanupFileWatcher() {
 void MenuFileModel::onFileChanged(const QString &path) {
     LOG_DEBUG(QString("File changed, refreshing model: %1").arg(path));
     // 延迟刷新以避免频繁更新
-    QTimer::singleShot(100, this, [this]() {
+    QTimer::singleShot(Constants::FILE_CHANGE_DELAY_MS, this, [this]() {
         refresh();
     });
 }
@@ -73,7 +74,7 @@ void MenuFileModel::onFileChanged(const QString &path) {
 void MenuFileModel::onDirectoryChanged(const QString &path) {
     LOG_DEBUG(QString("Directory changed, refreshing model: %1").arg(path));
     // 延迟刷新以避免频繁更新
-    QTimer::singleShot(100, this, [this]() {
+    QTimer::singleShot(Constants::FILE_CHANGE_DELAY_MS, this, [this]() {
         refresh();
     });
 }
@@ -126,7 +127,7 @@ void MenuFileModel::refresh() {
         QString userDir = FileUtils::getUserConfigDir();
         QDir userConfigDir(userDir);
         if (userConfigDir.exists()) {
-            QStringList userFiles = userConfigDir.entryList(QStringList() << "*.conf", QDir::Files);
+            QStringList userFiles = userConfigDir.entryList(QStringList() << Constants::File::CONFIG_FILE_FILTER, QDir::Files);
             for (const QString &fileName : userFiles) {
                 FileInfo info;
                 info.name = fileName;
@@ -137,13 +138,13 @@ void MenuFileModel::refresh() {
             }
         }
     }
-    
+
     if (m_showSystemOnly) {
         // 加载系统配置文件
         QString systemDir = FileUtils::getSystemConfigDir();
         QDir systemConfigDir(systemDir);
         if (systemConfigDir.exists()) {
-            QStringList systemFiles = systemConfigDir.entryList(QStringList() << "*.conf", QDir::Files);
+            QStringList systemFiles = systemConfigDir.entryList(QStringList() << Constants::File::CONFIG_FILE_FILTER, QDir::Files);
             for (const QString &fileName : systemFiles) {
                 FileInfo info;
                 info.name = fileName;
@@ -211,8 +212,8 @@ void MenuFileModel::createFile(const QString &name) {
 
     // 构建文件路径
     QString filePath = targetDir + "/" + name;
-    if (!filePath.endsWith(".conf")) {
-        filePath += ".conf";
+    if (!filePath.endsWith(Constants::File::CONFIG_EXTENSION)) {
+        filePath += Constants::File::CONFIG_EXTENSION;
     }
 
     // 检查文件是否已存在
@@ -228,12 +229,12 @@ void MenuFileModel::createFile(const QString &name) {
         file.close();
 
         // 重新启动文件监视以包含新文件
-        QTimer::singleShot(50, this, [this]() {
+        QTimer::singleShot(Constants::FILE_WATCHER_RESTART_DELAY_MS, this, [this]() {
             setupFileWatcher();
         });
 
         // 刷新模型以显示新文件
-        QTimer::singleShot(100, this, [this]() {
+        QTimer::singleShot(Constants::FILE_CHANGE_DELAY_MS, this, [this]() {
             refresh();
         });
     } else {
@@ -264,19 +265,19 @@ void MenuFileModel::deleteFile(const QString &path) {
         LOG_DEBUG(QString("Successfully deleted file: %1").arg(path));
 
         // 重新启动文件监视
-        QTimer::singleShot(50, this, [this]() {
+        QTimer::singleShot(Constants::FILE_WATCHER_RESTART_DELAY_MS, this, [this]() {
             setupFileWatcher();
         });
 
         // 刷新模型以更新显示
-        QTimer::singleShot(100, this, [this]() {
+        QTimer::singleShot(Constants::FILE_CHANGE_DELAY_MS, this, [this]() {
             refresh();
         });
     } else {
         qWarning() << "Failed to delete file:" << path
                    << "- Error:" << file.errorString();
         // 即使失败也要重新启动监视
-        QTimer::singleShot(50, this, [this]() {
+        QTimer::singleShot(Constants::FILE_WATCHER_RESTART_DELAY_MS, this, [this]() {
             setupFileWatcher();
         });
     }
@@ -296,8 +297,8 @@ void MenuFileModel::renameFile(const QString &path, const QString &newName) {
 
     // 构建新文件名
     QString newFileName = newName;
-    if (!newFileName.endsWith(".conf")) {
-        newFileName += ".conf";
+    if (!newFileName.endsWith(Constants::File::CONFIG_EXTENSION)) {
+        newFileName += Constants::File::CONFIG_EXTENSION;
     }
     
     // 构建新文件路径
@@ -320,19 +321,19 @@ void MenuFileModel::renameFile(const QString &path, const QString &newName) {
         LOG_DEBUG(QString("Successfully renamed file from %1 to %2").arg(path).arg(newPath));
 
         // 重新启动文件监视
-        QTimer::singleShot(50, this, [this]() {
+        QTimer::singleShot(Constants::FILE_WATCHER_RESTART_DELAY_MS, this, [this]() {
             setupFileWatcher();
         });
 
         // 刷新模型以更新显示
-        QTimer::singleShot(100, this, [this]() {
+        QTimer::singleShot(Constants::FILE_CHANGE_DELAY_MS, this, [this]() {
             refresh();
         });
     } else {
         qWarning() << "Failed to rename file from" << path << "to" << newPath
                    << "- Error:" << file.errorString();
         // 即使失败也要重新启动监视
-        QTimer::singleShot(50, this, [this]() {
+        QTimer::singleShot(Constants::FILE_WATCHER_RESTART_DELAY_MS, this, [this]() {
             setupFileWatcher();
         });
     }

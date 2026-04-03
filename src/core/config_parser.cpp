@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "config_parser.h"
 #include "../utils/logger.h"
+#include "../utils/constants.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
@@ -29,75 +30,75 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
         
         // 解析组头 [Menu Action xxx]
         if (line.startsWith('[') && line.endsWith(']')) {
-            currentGroup = line.mid(1, line.length() - 2);
-            
-            if (currentGroup.startsWith("Menu Action ")) {
-                QString actionId = currentGroup.mid(12);
+            currentGroup = line.mid(Constants::BRACKET_OFFSET, line.length() - 2);
+
+            if (currentGroup.startsWith(Constants::Config::MENU_ACTION_PREFIX)) {
+                QString actionId = currentGroup.mid(Constants::MENU_ACTION_PREFIX_LENGTH);
                 currentAction = new MenuActionItem();
                 currentAction->id = actionId;
                 currentAction->isRoot = false;
                 currentAction->configFile = filePath;
                 data.actions.append(*currentAction);
                 data.actionMap[actionId] = currentAction;
-            } else if (currentGroup == "Menu Entry") {
+            } else if (currentGroup == Constants::Config::MENU_ENTRY_GROUP) {
                 currentAction = new MenuActionItem();
                 currentAction->isRoot = true;
-                currentAction->id = "root";
+                currentAction->id = Constants::Defaults::ROOT_ACTION_ID;
                 currentAction->configFile = filePath;
-                data.rootActionId = "root";
+                data.rootActionId = Constants::Defaults::ROOT_ACTION_ID;
                 data.actions.append(*currentAction);
-                data.actionMap["root"] = currentAction;
+                data.actionMap[Constants::Defaults::ROOT_ACTION_ID] = currentAction;
             }
             continue;
         }
-        
+
         // 解析键值对
         QString key, value;
         if (parseLine(line, key, value)) {
             if (!currentAction) {
                 continue;
             }
-            
+
             // 处理各种字段
-            if (key == "Name") {
+            if (key == Constants::Config::KEY_NAME) {
                 currentAction->name = value;
-            } else if (key == "Name[zh_CN]") {
+            } else if (key == Constants::Config::KEY_NAME_LOCAL) {
                 currentAction->nameLocal = value;
-            } else if (key == "Comment") {
+            } else if (key == Constants::Config::KEY_COMMENT) {
                 if (currentAction->isRoot) {
                     data.comment = value;
                 } else {
                     currentAction->comment = value;
                 }
-            } else if (key == "Comment[zh_CN]") {
+            } else if (key == Constants::Config::KEY_COMMENT_LOCAL) {
                 if (currentAction->isRoot) {
                     data.commentLocal = value;
                 } else {
                     currentAction->commentLocal = value;
                 }
-            } else if (key == "Version") {
+            } else if (key == Constants::Config::KEY_VERSION) {
                 data.version = value;
-            } else if (key == "Actions") {
+            } else if (key == Constants::Config::KEY_ACTIONS) {
                 currentAction->childActions = parseActions(value);
-            } else if (key == "X-DFM-MenuTypes") {
+            } else if (key == Constants::Config::KEY_MENU_TYPES) {
                 currentAction->menuTypes = parseList(value, ":");
-            } else if (key == "X-DFM-SupportSuffix") {
+            } else if (key == Constants::Config::KEY_SUPPORT_SUFFIX) {
                 currentAction->supportSuffix = parseList(value, ":");
-            } else if (key == "PosNum") {
+            } else if (key == Constants::Config::KEY_POS_NUM) {
                 currentAction->positionNumber = value.toInt();
-            } else if (key == "PosNum-SingleFile") {
+            } else if (key == Constants::Config::KEY_POS_NUM_SINGLE) {
                 currentAction->positionNumberSingleFile = value.toInt();
-            } else if (key == "PosNum-MultiFiles") {
+            } else if (key == Constants::Config::KEY_POS_NUM_MULTI) {
                 currentAction->positionNumberMultiFiles = value.toInt();
-            } else if (key == "Exec") {
+            } else if (key == Constants::Config::KEY_EXEC) {
                 currentAction->execCommand = value;
-            } else if (key == "Separator") {
+            } else if (key == Constants::Config::KEY_SEPARATOR) {
                 // 保存为字符串值，同时保持向后兼容
                 currentAction->separator = value;
-                if (value == "Top") {
+                if (value == Constants::Config::SEPARATOR_TOP) {
                     currentAction->separatorTop = true;
                     currentAction->separatorBottom = false;
-                } else if (value == "Bottom") {
+                } else if (value == Constants::Config::SEPARATOR_BOTTOM) {
                     currentAction->separatorBottom = true;
                     currentAction->separatorTop = false;
                 }
@@ -154,7 +155,7 @@ QStringList ConfigParser::getValidationErrors(const ConfigData &data) {
     }
     
     // 检查根菜单
-    if (!data.actionMap.contains("root")) {
+    if (!data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
         errors << "缺少根菜单项";
     }
     
@@ -199,11 +200,11 @@ void ConfigParser::buildTreeStructure(ConfigData &data) {
     QList<MenuActionItem*> queue;
     
     // 从根节点开始
-    if (data.actionMap.contains("root")) {
-        MenuActionItem *root = data.actionMap["root"];
-        root->level = 0;
+    if (data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
+        MenuActionItem *root = data.actionMap[Constants::Defaults::ROOT_ACTION_ID];
+        root->level = Constants::Defaults::ROOT_LEVEL;
         queue.append(root);
-        visited.insert("root");
+        visited.insert(Constants::Defaults::ROOT_ACTION_ID);
     }
     
     while (!queue.isEmpty()) {

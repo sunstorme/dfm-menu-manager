@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "file_watcher.h"
 #include "../utils/logger.h"
+#include "../utils/constants.h"
 #include <QDir>
 #include <QFileInfo>
 
@@ -63,7 +64,7 @@ void FileWatcher::unwatchDirectory(const QString &path) {
 
 void FileWatcher::scanDirectoryFiles(const QString &path) {
     QDir dir(path);
-    QFileInfoList fileList = dir.entryInfoList(QStringList() << "*.conf", QDir::Files);
+    QFileInfoList fileList = dir.entryInfoList(QStringList() << Constants::File::CONFIG_FILE_FILTER, QDir::Files);
 
     QSet<QString> currentFiles;
     for (const QFileInfo &fileInfo : fileList) {

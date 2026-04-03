@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "menu_tree_model.h"
 #include "../utils/logger.h"
+#include "../utils/constants.h"
 #include <QDateTime>
 
 MenuTreeModel::MenuTreeModel(QObject *parent)
     : QAbstractItemModel(parent) {
     m_rootItem = new TreeItem();
     m_rootItem->isRoot = true;
-    m_rootItem->level = 0;
-    m_rootItem->id = "root";
+    m_rootItem->level = Constants::Defaults::ROOT_LEVEL;
+    m_rootItem->id = Constants::Defaults::ROOT_ACTION_ID;
     m_rootItem->parentItem = nullptr;
     m_allItems.append(m_rootItem);
 }
@@ -159,14 +160,14 @@ void MenuTreeModel::addItem(const QModelIndex &parent, const QString &name) {
     }
     
     TreeItem *parentItem = getItem(parent);
-    
+
     // 检查层级限制
-    if (parentItem->level >= 3) {
-        emit errorOccurred("最多支持3级菜单");
+    if (parentItem->level >= Constants::MAX_MENU_LEVEL) {
+        emit errorOccurred(QString("最多支持%1级菜单").arg(Constants::MAX_MENU_LEVEL));
         return;
     }
-    
-    beginInsertRows(parent, parentItem->subItems.size(), 
+
+    beginInsertRows(parent, parentItem->subItems.size(),
                    parentItem->subItems.size());
     
     // 创建新菜单项
@@ -348,13 +349,13 @@ void MenuTreeModel::addChildItem(const QModelIndex &index, const QString &name) 
         emit errorOccurred("找不到节点");
         return;
     }
-    
+
     // 检查层级限制
-    if (parentItem->level >= 3) {
-        emit errorOccurred("最多支持3级菜单");
+    if (parentItem->level >= Constants::MAX_MENU_LEVEL) {
+        emit errorOccurred(QString("最多支持%1级菜单").arg(Constants::MAX_MENU_LEVEL));
         return;
     }
-    
+
     beginInsertRows(parentIndex, parentItem->subItems.size(), parentItem->subItems.size());
     
     // 创建新菜单项
@@ -404,22 +405,22 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
     QList<QPair<TreeItem*, QStringList>> queue;  // (父节点, 子节点ID列表)
     
     // 创建根节点
-    if (data.actionMap.contains("root")) {
-        const MenuActionItem *rootAction = data.actionMap["root"];
+    if (data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
+        const MenuActionItem *rootAction = data.actionMap[Constants::Defaults::ROOT_ACTION_ID];
         m_rootItem->id = rootAction->id;
         m_rootItem->name = rootAction->name;
         m_rootItem->nameLocal = rootAction->nameLocal;
         m_rootItem->comment = rootAction->comment;
         m_rootItem->commentLocal = rootAction->commentLocal;
-        m_rootItem->level = 0;
+        m_rootItem->level = Constants::Defaults::ROOT_LEVEL;
         m_rootItem->isRoot = true;
         m_rootItem->configFile = rootAction->configFile;
         m_rootItem->isSystem = rootAction->isSystem;
         m_rootItem->childActions = rootAction->childActions;
         m_rootItem->version = data.version;  // 添加版本号
-        
+
         queue.append(qMakePair(m_rootItem, rootAction->childActions));
-        visited.insert("root");
+        visited.insert(Constants::Defaults::ROOT_ACTION_ID);
     }
     
     while (!queue.isEmpty()) {
@@ -482,8 +483,8 @@ void MenuTreeModel::setConfigData(const ConfigParser::ConfigData &data) {
     // 创建新的根节点
     m_rootItem = new TreeItem();
     m_rootItem->isRoot = true;
-    m_rootItem->level = 0;
-    m_rootItem->id = "root";
+    m_rootItem->level = Constants::Defaults::ROOT_LEVEL;
+    m_rootItem->id = Constants::Defaults::ROOT_ACTION_ID;
     m_rootItem->parentItem = nullptr;
     m_allItems.append(m_rootItem);
     

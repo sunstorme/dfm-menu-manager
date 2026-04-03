@@ -18,6 +18,7 @@
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include "utils/constants.h"
 #include <QQmlContext>
 #include "utils/logger.h"
 #include <QTranslator>
@@ -41,7 +42,7 @@ int main(int argc, char *argv[])
     LOG_DEBUG("Creating QGuiApplication...");
     QGuiApplication app(argc, argv);
     app.setApplicationName("dfm-menu-manager");
-    app.setApplicationVersion("1.0.0");
+    app.setApplicationVersion(Constants::Defaults::DEFAULT_APP_VERSION);
     app.setOrganizationName("deepin");
     LOG_DEBUG("QGuiApplication created successfully");
 
@@ -77,11 +78,11 @@ int main(int argc, char *argv[])
     
     // 注册QML类型
     LOG_DEBUG("Registering QML types...");
-    qmlRegisterType<MenuTreeModel>("DFMMenu", 1, 0, "MenuTreeModel");
-    qmlRegisterType<MenuFileModel>("DFMMenu", 1, 0, "MenuFileModel");
-    qmlRegisterType<MenuManager>("DFMMenu", 1, 0, "MenuManager");
-    qmlRegisterType<FileTypeManager>("DFMMenu", 1, 0, "FileTypeManager");
-    qmlRegisterSingletonType<WindowManager>("DFMMenu", 1, 0, "WindowManager",
+    qmlRegisterType<MenuTreeModel>(Constants::QML_MODULE_NAME, Constants::QML_MAJOR_VERSION, Constants::QML_MINOR_VERSION, "MenuTreeModel");
+    qmlRegisterType<MenuFileModel>(Constants::QML_MODULE_NAME, Constants::QML_MAJOR_VERSION, Constants::QML_MINOR_VERSION, "MenuFileModel");
+    qmlRegisterType<MenuManager>(Constants::QML_MODULE_NAME, Constants::QML_MAJOR_VERSION, Constants::QML_MINOR_VERSION, "MenuManager");
+    qmlRegisterType<FileTypeManager>(Constants::QML_MODULE_NAME, Constants::QML_MAJOR_VERSION, Constants::QML_MINOR_VERSION, "FileTypeManager");
+    qmlRegisterSingletonType<WindowManager>(Constants::QML_MODULE_NAME, Constants::QML_MAJOR_VERSION, Constants::QML_MINOR_VERSION, "WindowManager",
         [](QQmlEngine *engine, QJSEngine *scriptEngine) -> QObject* {
             Q_UNUSED(scriptEngine)
             WindowManager* instance = WindowManager::instance();
