@@ -3,13 +3,13 @@
 #include "menu_file_model.h"
 #include "../core/file_watcher.h"
 #include "../utils/file_utils.h"
+#include "../utils/logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QDesktopServices>
 #include <QUrl>
 #include <QProcess>
 #include <QTimer>
-#include <QDebug>
 
 MenuFileModel::MenuFileModel(QObject *parent)
     : QAbstractListModel(parent)
@@ -41,14 +41,14 @@ void MenuFileModel::setupFileWatcher() {
     QString userDir = FileUtils::getUserConfigDir();
     if (QDir(userDir).exists()) {
         m_fileWatcher->watchDirectory(userDir);
-        qDebug() << "Watching user directory:" << userDir;
+        LOG_DEBUG(QString("Watching user directory: %1").arg(userDir));
     }
-    
+
     // 监控系统配置目录
     QString systemDir = FileUtils::getSystemConfigDir();
     if (QDir(systemDir).exists()) {
         m_fileWatcher->watchDirectory(systemDir);
-        qDebug() << "Watching system directory:" << systemDir;
+        LOG_DEBUG(QString("Watching system directory: %1").arg(systemDir));
     }
 }
 
@@ -63,7 +63,7 @@ void MenuFileModel::cleanupFileWatcher() {
 }
 
 void MenuFileModel::onFileChanged(const QString &path) {
-    qDebug() << "File changed, refreshing model:" << path;
+    LOG_DEBUG(QString("File changed, refreshing model: %1").arg(path));
     // 延迟刷新以避免频繁更新
     QTimer::singleShot(100, this, [this]() {
         refresh();
@@ -71,7 +71,7 @@ void MenuFileModel::onFileChanged(const QString &path) {
 }
 
 void MenuFileModel::onDirectoryChanged(const QString &path) {
-    qDebug() << "Directory changed, refreshing model:" << path;
+    LOG_DEBUG(QString("Directory changed, refreshing model: %1").arg(path));
     // 延迟刷新以避免频繁更新
     QTimer::singleShot(100, this, [this]() {
         refresh();
@@ -191,10 +191,10 @@ void MenuFileModel::applySearchFilter() {
 
 void MenuFileModel::createFile(const QString &name) {
     if (name.isEmpty()) {
-        qWarning() << "Cannot create file with empty name";
+        LOG_WARNING("Cannot create file with empty name");
         return;
     }
-    
+
     // 确定目标目录
     QString targetDir;
     if (m_showSystemOnly) {
@@ -202,73 +202,72 @@ void MenuFileModel::createFile(const QString &name) {
     } else {
         targetDir = FileUtils::getUserConfigDir();
     }
-    
+
     // 确保目录存在
     if (!FileUtils::ensureDirExists(targetDir)) {
-        qWarning() << "Failed to create directory:" << targetDir;
+        LOG_WARNING(QString("Failed to create directory: %1").arg(targetDir));
         return;
     }
-    
+
     // 构建文件路径
     QString filePath = targetDir + "/" + name;
     if (!filePath.endsWith(".conf")) {
         filePath += ".conf";
     }
-    
+
     // 检查文件是否已存在
     if (QFile::exists(filePath)) {
-        qWarning() << "File already exists:" << filePath;
+        LOG_WARNING(QString("File already exists: %1").arg(filePath));
         return;
     }
-    
+
     // 创建空文件
     QFile file(filePath);
     if (file.open(QIODevice::WriteOnly)) {
         file.write("# DFM Context Menu Configuration\n");
         file.close();
-        
+
         // 重新启动文件监视以包含新文件
         QTimer::singleShot(50, this, [this]() {
             setupFileWatcher();
         });
-        
+
         // 刷新模型以显示新文件
         QTimer::singleShot(100, this, [this]() {
             refresh();
         });
     } else {
-        qWarning() << "Failed to create file:" << filePath;
+        LOG_WARNING(QString("Failed to create file: %1").arg(filePath));
     }
 }
 
 void MenuFileModel::deleteFile(const QString &path) {
     if (path.isEmpty()) {
-        qWarning() << "Cannot delete file with empty path";
+        LOG_WARNING("Cannot delete file with empty path");
         return;
     }
-    
+
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
-        qWarning() << "File does not exist:" << path;
+        LOG_WARNING(QString("File does not exist: %1").arg(path));
         return;
     }
-    
-    
+
     // 临时停止文件监视，以便删除操作
     if (m_fileWatcher) {
         m_fileWatcher->unwatchDirectory(fileInfo.absolutePath());
     }
-    
+
     // 删除文件
     QFile file(path);
     if (file.remove()) {
-        qDebug() << "Successfully deleted file:" << path;
-        
+        LOG_DEBUG(QString("Successfully deleted file: %1").arg(path));
+
         // 重新启动文件监视
         QTimer::singleShot(50, this, [this]() {
             setupFileWatcher();
         });
-        
+
         // 刷新模型以更新显示
         QTimer::singleShot(100, this, [this]() {
             refresh();
@@ -285,17 +284,16 @@ void MenuFileModel::deleteFile(const QString &path) {
 
 void MenuFileModel::renameFile(const QString &path, const QString &newName) {
     if (path.isEmpty() || newName.isEmpty()) {
-        qWarning() << "Cannot rename file with empty path or name";
-        return;
-    }
-    
-    QFileInfo fileInfo(path);
-    if (!fileInfo.exists()) {
-        qWarning() << "File does not exist:" << path;
+        LOG_WARNING("Cannot rename file with empty path or name");
         return;
     }
 
-    
+    QFileInfo fileInfo(path);
+    if (!fileInfo.exists()) {
+        LOG_WARNING(QString("File does not exist: %1").arg(path));
+        return;
+    }
+
     // 构建新文件名
     QString newFileName = newName;
     if (!newFileName.endsWith(".conf")) {
@@ -307,25 +305,25 @@ void MenuFileModel::renameFile(const QString &path, const QString &newName) {
     
     // 检查目标文件是否已存在
     if (QFile::exists(newPath) && newPath != path) {
-        qWarning() << "Target file already exists:" << newPath;
+        LOG_WARNING(QString("Target file already exists: %1").arg(newPath));
         return;
     }
-    
+
     // 临时停止文件监视，以便重命名操作
     if (m_fileWatcher) {
         m_fileWatcher->unwatchDirectory(fileInfo.absolutePath());
     }
-    
+
     // 重命名文件
     QFile file(path);
     if (file.rename(newPath)) {
-        qDebug() << "Successfully renamed file from" << path << "to" << newPath;
-        
+        LOG_DEBUG(QString("Successfully renamed file from %1 to %2").arg(path).arg(newPath));
+
         // 重新启动文件监视
         QTimer::singleShot(50, this, [this]() {
             setupFileWatcher();
         });
-        
+
         // 刷新模型以更新显示
         QTimer::singleShot(100, this, [this]() {
             refresh();
@@ -350,55 +348,55 @@ QString MenuFileModel::copyFile(const QString &sourcePath, bool toSystem) {
 void MenuFileModel::openFile(const QString &path) {
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
-        qWarning() << "File does not exist:" << path;
+        LOG_WARNING(QString("File does not exist: %1").arg(path));
         return;
     }
-    
-    qDebug() << "Attempting to open file:" << path;
-    
+
+    LOG_DEBUG(QString("Attempting to open file: %1").arg(path));
+
     // 使用Qt的QDesktopServices打开文件（跨平台方式）
     QUrl url = QUrl::fromLocalFile(path);
     bool success = QDesktopServices::openUrl(url);
-    
+
     if (success) {
-        qDebug() << "Successfully opened file with Qt:" << path;
+        LOG_DEBUG(QString("Successfully opened file with Qt: %1").arg(path));
     } else {
-        qWarning() << "Failed to open file with Qt:" << path;
+        LOG_WARNING(QString("Failed to open file with Qt: %1").arg(path));
     }
 }
 
 void MenuFileModel::openContainingFolder(const QString &path) {
     QFileInfo fileInfo(path);
     if (!fileInfo.exists()) {
-        qWarning() << "File does not exist:" << path;
+        LOG_WARNING(QString("File does not exist: %1").arg(path));
         return;
     }
-    
+
     QString folderPath = fileInfo.absolutePath();
-    qDebug() << "Attempting to open containing folder:" << folderPath;
-    
+    LOG_DEBUG(QString("Attempting to open containing folder: %1").arg(folderPath));
+
     // 首先尝试使用dde-file-manager打开文件夹并选中文件（深度定制功能）
     QStringList ddeArgs;
     ddeArgs << "--show-item" << path;
-    
+
     qint64 ddePid = 0;
     bool ddeSuccess = QProcess::startDetached("dde-file-manager", ddeArgs, QString(), &ddePid);
-    
+
     if (ddeSuccess && ddePid > 0) {
-        qDebug() << "Successfully started dde-file-manager for:" << path << "PID:" << ddePid;
+        LOG_DEBUG(QString("Successfully started dde-file-manager for: %1 PID: %2").arg(path).arg(ddePid));
         return;
     } else {
-        qDebug() << "dde-file-manager not available, using Qt to open folder:" << folderPath;
+        LOG_DEBUG(QString("dde-file-manager not available, using Qt to open folder: %1").arg(folderPath));
     }
-    
+
     // 如果dde-file-manager不可用，使用Qt的QDesktopServices打开文件夹
     QUrl url = QUrl::fromLocalFile(folderPath);
     bool success = QDesktopServices::openUrl(url);
-    
+
     if (success) {
-        qDebug() << "Successfully opened folder with Qt:" << folderPath;
+        LOG_DEBUG(QString("Successfully opened folder with Qt: %1").arg(folderPath));
     } else {
-        qWarning() << "Failed to open folder with Qt:" << folderPath;
+        LOG_WARNING(QString("Failed to open folder with Qt: %1").arg(folderPath));
     }
 }
 

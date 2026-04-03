@@ -1307,7 +1307,7 @@ ApplicationWindow {
                                 
                                 Components.DButton {
                                     id: selectButton
-                                    width: 80
+                                    width: Styles.Style.itemHeight * 2
                                     // height: parent.height
                                     text: qsTr("Select")
                                       

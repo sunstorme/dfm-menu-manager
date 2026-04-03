@@ -1,10 +1,10 @@
 // SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "config_parser.h"
+#include "../utils/logger.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDateTime>
-#include <QDebug>
 #include <QSet>
 
 ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
@@ -12,7 +12,7 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
     QFile file(filePath);
     
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        qWarning() << "无法打开配置文件:" << filePath;
+        LOG_WARNING(QString("无法打开配置文件: %1").arg(filePath));
         return data;
     }
     
@@ -223,7 +223,7 @@ void ConfigParser::buildTreeStructure(ConfigData &data) {
         }
     }
     
-    qDebug() << "buildTreeStructure: Calculated levels for" << visited.size() << "items";
+    LOG_DEBUG(QString("buildTreeStructure: Calculated levels for %1 items").arg(visited.size()));
 }
 
 void ConfigParser::calculateLevel(MenuActionItem &action, ConfigData &data) {

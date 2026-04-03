@@ -1,22 +1,22 @@
 // SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "config_writer.h"
+#include "../utils/logger.h"
 #include <QFile>
 #include <QTextStream>
 #include <QDir>
-#include <QDebug>
 
 bool ConfigWriter::writeToFile(const QString &filePath,
                                const ConfigParser::ConfigData &data) {
     // 先备份
     if (!backupFile(filePath)) {
-        qWarning() << "备份文件失败:" << filePath;
+        LOG_WARNING(QString("备份文件失败: %1").arg(filePath));
         return false;
     }
-    
+
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        qWarning() << "无法打开文件进行写入:" << filePath;
+        LOG_WARNING(QString("无法打开文件进行写入: %1").arg(filePath));
         return false;
     }
     

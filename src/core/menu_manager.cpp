@@ -3,7 +3,7 @@
 #include "menu_manager.h"
 #include "file_watcher.h"
 #include "../utils/file_utils.h"
-#include <QDebug>
+#include "../utils/logger.h"
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -143,33 +143,33 @@ bool MenuManager::deleteConfig(const QString &filePath) {
 }
 
 MenuTreeModel* MenuManager::getMenuModel(const QString &configFile) {
-    qDebug() << "MenuManager::getMenuModel called with:" << configFile;
+    LOG_DEBUG(QString("MenuManager::getMenuModel called with: %1").arg(configFile));
     if (!m_models.contains(configFile)) {
-        qDebug() << "Creating new model for:" << configFile;
+        LOG_DEBUG(QString("Creating new model for: %1").arg(configFile));
         // 解析配置文件
         ConfigParser::ConfigData data = m_parser.parseFile(configFile);
-        
-        qDebug() << "Config data isValid:" << data.isValid();
-        qDebug() << "Config data actions count:" << data.actions.size();
-        
+
+        LOG_DEBUG(QString("Config data isValid: %1").arg(data.isValid()));
+        LOG_DEBUG(QString("Config data actions count: %1").arg(data.actions.size()));
+
         // 创建模型（即使配置数据无效，也创建空模型让用户可以编辑）
         MenuTreeModel *model = new MenuTreeModel(this);
         if (data.isValid()) {
             model->setConfigData(data);
         } else {
-            qDebug() << "Config data is invalid, creating empty model for editing";
+            LOG_DEBUG("Config data is invalid, creating empty model for editing");
             // 不发射错误信号，因为空配置文件是允许的
             // emit errorOccurred("解析配置文件失败");
         }
         m_models[configFile] = model;
-        qDebug() << "Model created, rowCount:" << model->rowCount();
+        LOG_DEBUG(QString("Model created, rowCount: %1").arg(model->rowCount()));
     }
-    
+
     return m_models[configFile];
 }
 
 void MenuManager::setCurrentConfig(const QString &configFile) {
-    qDebug() << "MenuManager::setCurrentConfig called with:" << configFile;
+    LOG_DEBUG(QString("MenuManager::setCurrentConfig called with: %1").arg(configFile));
     m_currentConfig = configFile;
     emit configLoaded(configFile);
 }
@@ -195,9 +195,9 @@ MenuFileModel* MenuManager::getFileModel() {
 QString MenuManager::exportToJson(const QString &configFile) {
     // 解析配置文件
     ConfigParser::ConfigData data = m_parser.parseFile(configFile);
-    
+
     if (!data.isValid()) {
-        qWarning() << "Failed to parse config file:" << configFile;
+        LOG_WARNING(QString("Failed to parse config file: %1").arg(configFile));
         return "{}";
     }
     
@@ -265,25 +265,25 @@ QString MenuManager::exportToJson(const QString &configFile) {
     // 转换为 JSON 字符串
     QJsonDocument doc(rootObj);
     QString jsonString = QString::fromUtf8(doc.toJson(QJsonDocument::Indented));
-    
-    qDebug() << "Exported config to JSON:" << configFile;
-    qDebug() << "Total actions:" << actionsArray.size();
-    
+
+    LOG_DEBUG(QString("Exported config to JSON: %1").arg(configFile));
+    LOG_DEBUG(QString("Total actions: %1").arg(actionsArray.size()));
+
     return jsonString;
 }
 
 void MenuManager::onFileChanged(const QString &filePath) {
-    qDebug() << "MenuManager::onFileChanged called for:" << filePath;
-    
+    LOG_DEBUG(QString("MenuManager::onFileChanged called for: %1").arg(filePath));
+
     // 如果正在保存文件，则跳过重新加载（避免循环）
     if (m_isSaving) {
-        qDebug() << "Skipping file change handling during save operation";
+        LOG_DEBUG("Skipping file change handling during save operation");
         return;
     }
-    
+
     // 检查文件是否仍然存在（可能是删除操作）
     if (!QFile::exists(filePath)) {
-        qDebug() << "File no longer exists:" << filePath;
+        LOG_DEBUG(QString("File no longer exists: %1").arg(filePath));
         // 移除模型
         if (m_models.contains(filePath)) {
             m_models.remove(filePath);
@@ -297,53 +297,53 @@ void MenuManager::onFileChanged(const QString &filePath) {
         emit configChanged(filePath);
         return;
     }
-    
+
     // 重新解析配置文件
     ConfigParser::ConfigData data = m_parser.parseFile(filePath);
-    
+
     if (!data.isValid()) {
-        qWarning() << "Failed to parse changed file:" << filePath;
+        LOG_WARNING(QString("Failed to parse changed file: %1").arg(filePath));
         emit errorOccurred(QString("解析变更的配置文件失败: %1").arg(filePath));
         return;
     }
-    
+
     // 如果已有模型，更新它；否则创建新模型
     if (m_models.contains(filePath)) {
         MenuTreeModel *model = m_models[filePath];
         model->setConfigData(data);
-        qDebug() << "Updated existing model for:" << filePath;
+        LOG_DEBUG(QString("Updated existing model for: %1").arg(filePath));
     } else {
         MenuTreeModel *model = new MenuTreeModel(this);
         model->setConfigData(data);
         m_models[filePath] = model;
-        qDebug() << "Created new model for:" << filePath;
+        LOG_DEBUG(QString("Created new model for: %1").arg(filePath));
     }
-    
+
     // 如果是当前正在编辑的文件，发出 configLoaded 信号以刷新 UI
     if (m_currentConfig == filePath) {
         emit configLoaded(filePath);
     }
-    
+
     // 刷新文件列表（可能文件名或其他属性变化）
     m_fileModel->refresh();
-    
+
     // 发出配置变化信号
     emit configChanged(filePath);
 }
 
 void MenuManager::onDirectoryChanged(const QString &dirPath) {
-    qDebug() << "MenuManager::onDirectoryChanged called for:" << dirPath;
-    
+    LOG_DEBUG(QString("MenuManager::onDirectoryChanged called for: %1").arg(dirPath));
+
     // 刷新文件列表
     m_fileModel->refresh();
-    
+
     // 重新扫描目录中的文件
     m_watcher->watchDirectory(dirPath);
 }
 
 void MenuManager::saveViewState(const QString &selectedItemId, const QStringList &expandedItemIds) {
-    qDebug() << "MenuManager::saveViewState called - selectedItemId:" << selectedItemId 
-             << "expandedItemIds:" << expandedItemIds;
+    LOG_DEBUG(QString("MenuManager::saveViewState called - selectedItemId: %1 expandedItemIds: %2")
+              .arg(selectedItemId).arg(expandedItemIds.join(", ")));
     m_selectedItemId = selectedItemId;
     m_expandedItemIds = expandedItemIds;
 }

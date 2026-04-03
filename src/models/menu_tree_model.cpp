@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "menu_tree_model.h"
+#include "../utils/logger.h"
 #include <QDateTime>
 
 MenuTreeModel::MenuTreeModel(QObject *parent)
@@ -466,7 +467,7 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
         }
     }
     
-    qDebug() << "buildTree: Built tree with" << m_allItems.size() << "items";
+    LOG_DEBUG(QString("buildTree: Built tree with %1 items").arg(m_allItems.size()));
 }
 
 void MenuTreeModel::setConfigData(const ConfigParser::ConfigData &data) {

@@ -29,6 +29,7 @@ Button {
     // 字体
     font: Styles.Style.bodyFont
     width: 80
+    height: 40
     
     // 背景矩形
     background: Rectangle {

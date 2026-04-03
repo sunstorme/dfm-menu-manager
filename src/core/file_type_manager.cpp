@@ -1,13 +1,13 @@
 // SPDX-FileCopyrightText: 2026 zhanghongyuan <zhanghongyuan@uniontech.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "file_type_manager.h"
+#include "../utils/logger.h"
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QStandardPaths>
 #include <QDir>
-#include <QDebug>
 
 FileTypeManager::FileTypeManager(QObject *parent)
     : QObject(parent)
@@ -20,14 +20,14 @@ void FileTypeManager::loadFileTypesData()
     // 从资源文件加载
     QFile file(":/file_types.json");
     if (!file.open(QIODevice::ReadOnly)) {
-        qWarning() << "Failed to open file_types.json:" << file.errorString();
+        LOG_WARNING(QString("Failed to open file_types.json: %1").arg(file.errorString()));
         return;
     }
-    
+
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(file.readAll(), &error);
     if (error.error != QJsonParseError::NoError) {
-        qWarning() << "Failed to parse file_types.json:" << error.errorString();
+        LOG_WARNING(QString("Failed to parse file_types.json: %1").arg(error.errorString()));
         return;
     }
     
@@ -58,8 +58,8 @@ void FileTypeManager::loadFileTypesData()
     
     // 加载自定义文件类型
     loadCustomFileTypes();
-    
-    qDebug() << "Loaded" << m_allFileTypes.size() << "file types";
+
+    LOG_DEBUG(QString("Loaded %1 file types").arg(m_allFileTypes.size()));
 }
 
 void FileTypeManager::loadCustomFileTypes()
@@ -75,10 +75,10 @@ void FileTypeManager::loadCustomFileTypes()
     QJsonParseError error;
     QJsonDocument doc = QJsonDocument::fromJson(customFile.readAll(), &error);
     if (error.error != QJsonParseError::NoError) {
-        qWarning() << "Failed to parse custom_file_types.json:" << error.errorString();
+        LOG_WARNING(QString("Failed to parse custom_file_types.json: %1").arg(error.errorString()));
         return;
     }
-    
+
     QJsonArray customTypes = doc.array();
     for (const QJsonValue &value : customTypes) {
         QJsonObject typeObj = value.toObject();
@@ -90,8 +90,8 @@ void FileTypeManager::loadCustomFileTypes()
         fileType["isCustom"] = true;
         m_allFileTypes.append(fileType);
     }
-    
-    qDebug() << "Loaded" << customTypes.size() << "custom file types";
+
+    LOG_DEBUG(QString("Loaded %1 custom file types").arg(customTypes.size()));
 }
 
 void FileTypeManager::saveCustomFileTypes()
@@ -115,12 +115,12 @@ void FileTypeManager::saveCustomFileTypes()
     QJsonDocument doc(customTypes);
     QFile customFile(configPath + "/custom_file_types.json");
     if (!customFile.open(QIODevice::WriteOnly)) {
-        qWarning() << "Failed to save custom_file_types.json:" << customFile.errorString();
+        LOG_WARNING(QString("Failed to save custom_file_types.json: %1").arg(customFile.errorString()));
         return;
     }
-    
+
     customFile.write(doc.toJson());
-    qDebug() << "Saved" << customTypes.size() << "custom file types";
+    LOG_DEBUG(QString("Saved %1 custom file types").arg(customTypes.size()));
 }
 
 QStringList FileTypeManager::getSelectedSuffixes() const
@@ -189,8 +189,8 @@ void FileTypeManager::addCustomFileType(const QString &suffix, const QString &na
     // 保存到文件
     saveCustomFileTypes();
     emit fileTypesChanged();
-    
-    qDebug() << "Added custom file type:" << cleanSuffix << name << category;
+
+    LOG_DEBUG(QString("Added custom file type: %1 %2 %3").arg(cleanSuffix).arg(name).arg(category));
 }
 
 QVariantList FileTypeManager::filterFileTypes(const QString &searchText,

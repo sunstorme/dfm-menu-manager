@@ -15,36 +15,18 @@ find_package(Qt6 REQUIRED COMPONENTS
     LinguistTools
 )
 
-# 设置源文件
-set(SOURCES
-    src/main.cpp
-    src/core/menu_manager.cpp
-    src/core/config_parser.cpp
-    src/core/config_writer.cpp
-    src/core/file_watcher.cpp
-    src/core/file_type_manager.cpp
-    src/models/menu_tree_model.cpp
-    src/models/menu_file_model.cpp
-    src/models/menu_action_item.cpp
-    src/utils/config_helper.cpp
-    src/utils/file_utils.cpp
-    src/utils/window_manager.cpp
+# 自动收集源文件（添加新文件时无需修改CMakeLists.txt）
+file(GLOB_RECURSE SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
 )
 
-# 设置头文件
-set(HEADERS
-    src/core/menu_manager.h
-    src/core/config_parser.h
-    src/core/config_writer.h
-    src/core/file_watcher.h
-    src/core/file_type_manager.h
-    src/models/menu_tree_model.h
-    src/models/menu_file_model.h
-    src/models/menu_action_item.h
-    src/utils/config_helper.h
-    src/utils/file_utils.h
-    src/utils/window_manager.h
+# 自动收集头文件（添加新文件时无需修改CMakeLists.txt）
+file(GLOB_RECURSE HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
 )
+
+# 如需排除特定文件，取消注释以下行并修改正则表达式
+# list(FILTER SOURCES EXCLUDE REGEX "${CMAKE_CURRENT_SOURCE_DIR}/src/excluded/*")
 
 # 设置QML资源文件
 set(QML_RESOURCES
@@ -79,10 +61,19 @@ set(TS_FILES
 )
 
 # 添加自定义目标用于更新翻译
+# 自动收集所有需要翻译的源文件
+file(GLOB_RECURSE TRANSLATION_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/*.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.qml
+    ${CMAKE_CURRENT_SOURCE_DIR}/qml/*.js
+)
+
 add_custom_target(lupdate
-    COMMAND Qt6::lupdate ${CMAKE_CURRENT_SOURCE_DIR}/src ${CMAKE_CURRENT_SOURCE_DIR}/qml -ts ${TS_FILES}
-    COMMENT "Updating translation files"
+    COMMAND Qt6::lupdate ${TRANSLATION_SOURCES} -ts ${TS_FILES}
+    COMMENT "Updating translation files from all sources"
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    VERBATIM
 )
 
 add_custom_target(lrelease ALL
