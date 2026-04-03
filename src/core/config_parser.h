@@ -6,6 +6,7 @@
 #include <QString>
 #include <QList>
 #include <QMap>
+#include <QSharedPointer>
 #include "../models/menu_action_item.h"
 
 /**
@@ -24,8 +25,8 @@ public:
         QString commentLocal;               // 本地化描述
         QList<MenuActionItem> actions;      // 所有菜单项
         QString rootActionId;               // 根菜单ID
-        QMap<QString, MenuActionItem*> actionMap;  // ID到项的映射
-        
+        QMap<QString, QSharedPointer<MenuActionItem>> actionMap;  // ID到项的映射
+
         bool isValid() const {
             return !version.isEmpty() && !rootActionId.isEmpty();
         }

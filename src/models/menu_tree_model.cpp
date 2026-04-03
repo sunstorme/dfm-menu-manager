@@ -404,9 +404,8 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
     QSet<QString> visited;
     QList<QPair<TreeItem*, QStringList>> queue;  // (父节点, 子节点ID列表)
     
-    // 创建根节点
     if (data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
-        const MenuActionItem *rootAction = data.actionMap[Constants::Defaults::ROOT_ACTION_ID];
+        const MenuActionItem *rootAction = data.actionMap[Constants::Defaults::ROOT_ACTION_ID].data();
         m_rootItem->id = rootAction->id;
         m_rootItem->name = rootAction->name;
         m_rootItem->nameLocal = rootAction->nameLocal;
@@ -417,21 +416,21 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
         m_rootItem->configFile = rootAction->configFile;
         m_rootItem->isSystem = rootAction->isSystem;
         m_rootItem->childActions = rootAction->childActions;
-        m_rootItem->version = data.version;  // 添加版本号
+        m_rootItem->version = data.version;
 
         queue.append(qMakePair(m_rootItem, rootAction->childActions));
         visited.insert(Constants::Defaults::ROOT_ACTION_ID);
     }
-    
+
     while (!queue.isEmpty()) {
         auto pair = queue.takeFirst();
         TreeItem *parentItem = pair.first;
         const QStringList &childIds = pair.second;
-        
+
         for (int i = 0; i < childIds.size(); ++i) {
             const QString &childId = childIds[i];
             if (data.actionMap.contains(childId) && !visited.contains(childId)) {
-                const MenuActionItem *childAction = data.actionMap[childId];
+                const MenuActionItem *childAction = data.actionMap[childId].data();
                 
                 // 创建新节点
                 TreeItem *childItem = new TreeItem();
@@ -576,9 +575,8 @@ ConfigParser::ConfigData MenuTreeModel::getConfigData() const {
     
     while (!queue.isEmpty()) {
         TreeItem* item = queue.takeFirst();
-        
-        // 创建 MenuActionItem
-        MenuActionItem* actionItem = new MenuActionItem();
+
+        QSharedPointer<MenuActionItem> actionItem(new MenuActionItem());
         actionItem->id = item->id;
         actionItem->name = item->name;
         actionItem->nameLocal = item->nameLocal;
@@ -595,13 +593,12 @@ ConfigParser::ConfigData MenuTreeModel::getConfigData() const {
         actionItem->execCommand = item->execCommand;
         actionItem->menuTypes = item->menuTypes;
         actionItem->supportSuffix = item->supportSuffix;
-        
-        // 收集子节点ID
+
         for (TreeItem* child : item->subItems) {
             actionItem->childActions.append(child->id);
             queue.append(child);
         }
-        
+
         data.actions.append(*actionItem);
         data.actionMap[item->id] = actionItem;
     }

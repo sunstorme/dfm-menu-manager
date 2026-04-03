@@ -11,37 +11,35 @@
 ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
     ConfigData data;
     QFile file(filePath);
-    
+
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         LOG_WARNING(QString("无法打开配置文件: %1").arg(filePath));
         return data;
     }
-    
-    MenuActionItem *currentAction = nullptr;
+
+    QSharedPointer<MenuActionItem> currentAction;
     QString currentGroup;
-    
+
     while (!file.atEnd()) {
         QString line = QString::fromUtf8(file.readLine()).trimmed();
-        
-        // 跳过空行和注释
+
         if (line.isEmpty() || line.startsWith('#')) {
             continue;
         }
-        
-        // 解析组头 [Menu Action xxx]
+
         if (line.startsWith('[') && line.endsWith(']')) {
             currentGroup = line.mid(Constants::BRACKET_OFFSET, line.length() - 2);
 
             if (currentGroup.startsWith(Constants::Config::MENU_ACTION_PREFIX)) {
                 QString actionId = currentGroup.mid(Constants::MENU_ACTION_PREFIX_LENGTH);
-                currentAction = new MenuActionItem();
+                currentAction = QSharedPointer<MenuActionItem>(new MenuActionItem());
                 currentAction->id = actionId;
                 currentAction->isRoot = false;
                 currentAction->configFile = filePath;
                 data.actions.append(*currentAction);
                 data.actionMap[actionId] = currentAction;
             } else if (currentGroup == Constants::Config::MENU_ENTRY_GROUP) {
-                currentAction = new MenuActionItem();
+                currentAction = QSharedPointer<MenuActionItem>(new MenuActionItem());
                 currentAction->isRoot = true;
                 currentAction->id = Constants::Defaults::ROOT_ACTION_ID;
                 currentAction->configFile = filePath;
@@ -52,14 +50,12 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
             continue;
         }
 
-        // 解析键值对
         QString key, value;
         if (parseLine(line, key, value)) {
             if (!currentAction) {
                 continue;
             }
 
-            // 处理各种字段
             if (key == Constants::Config::KEY_NAME) {
                 currentAction->name = value;
             } else if (key == Constants::Config::KEY_NAME_LOCAL) {
@@ -93,7 +89,6 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
             } else if (key == Constants::Config::KEY_EXEC) {
                 currentAction->execCommand = value;
             } else if (key == Constants::Config::KEY_SEPARATOR) {
-                // 保存为字符串值，同时保持向后兼容
                 currentAction->separator = value;
                 if (value == Constants::Config::SEPARATOR_TOP) {
                     currentAction->separatorTop = true;
@@ -105,10 +100,9 @@ ConfigParser::ConfigData ConfigParser::parseFile(const QString &filePath) {
             }
         }
     }
-    
-    // 构建树形结构
+
     buildTreeStructure(data);
-    
+
     file.close();
     return data;
 }
@@ -195,25 +189,22 @@ QStringList ConfigParser::getValidationErrors(const ConfigData &data) {
 }
 
 void ConfigParser::buildTreeStructure(ConfigData &data) {
-    // 使用 BFS 从根节点开始计算层级
     QSet<QString> visited;
-    QList<MenuActionItem*> queue;
-    
-    // 从根节点开始
+    QList<QSharedPointer<MenuActionItem>> queue;
+
     if (data.actionMap.contains(Constants::Defaults::ROOT_ACTION_ID)) {
-        MenuActionItem *root = data.actionMap[Constants::Defaults::ROOT_ACTION_ID];
+        QSharedPointer<MenuActionItem> root = data.actionMap[Constants::Defaults::ROOT_ACTION_ID];
         root->level = Constants::Defaults::ROOT_LEVEL;
         queue.append(root);
         visited.insert(Constants::Defaults::ROOT_ACTION_ID);
     }
-    
+
     while (!queue.isEmpty()) {
-        MenuActionItem *parent = queue.takeFirst();
-        
-        // 计算子节点的层级
+        QSharedPointer<MenuActionItem> parent = queue.takeFirst();
+
         for (const QString &childId : parent->childActions) {
             if (data.actionMap.contains(childId) && !visited.contains(childId)) {
-                MenuActionItem *child = data.actionMap[childId];
+                QSharedPointer<MenuActionItem> child = data.actionMap[childId];
                 child->level = parent->level + 1;
                 if (child->level > 3) {
                     child->level = 3;
@@ -223,7 +214,7 @@ void ConfigParser::buildTreeStructure(ConfigData &data) {
             }
         }
     }
-    
+
     LOG_DEBUG(QString("buildTreeStructure: Calculated levels for %1 items").arg(visited.size()));
 }
 
