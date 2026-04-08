@@ -1409,7 +1409,7 @@ ApplicationWindow {
                         return true
                     }
                     // 重命名现有文件
-                    if (!isNewFile && editingFilePath === model.filePath && !model.isSystem) {
+                    if (!isNewFile && editingFilePath === model.filePath) {
                         return true
                     }
                     return false
@@ -1510,7 +1510,7 @@ ApplicationWindow {
                 enabled: !fileNameLoader.shouldShowEdit
                 
                 onDoubleClicked: function(mouse) {
-                    if (mouse.button === Qt.LeftButton && model.filePath !== "" && !model.isSystem) {
+                    if (mouse.button === Qt.LeftButton && model.filePath !== "") {
                         console.log("Double-clicked on file:", model.filePath)
                         console.log("currentModel:", currentModel, "typeof:", typeof currentModel)
                         editingFilePath = model.filePath
@@ -1772,6 +1772,11 @@ ApplicationWindow {
             if (idx >= 0) types.splice(idx, 1)
         }
         updateProperty("menuTypes", types)
+    }
+
+    // 辅助函数：判断文件是否是系统文件
+    function isSystemFile(filePath) {
+        return filePath.indexOf("/usr/share/") !== -1
     }
 
     // 视图状态保存

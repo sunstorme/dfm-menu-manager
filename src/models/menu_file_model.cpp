@@ -253,12 +253,6 @@ void MenuFileModel::deleteFile(const QString &path) {
         return;
     }
     
-    // 检查是否为系统文件（需要特殊权限）
-    bool isSystemFile = path.startsWith(FileUtils::getSystemConfigDir());
-    if (isSystemFile) {
-        qWarning() << "Cannot delete system file without proper permissions:" << path;
-        return;
-    }
     
     // 临时停止文件监视，以便删除操作
     if (m_fileWatcher) {
@@ -280,7 +274,8 @@ void MenuFileModel::deleteFile(const QString &path) {
             refresh();
         });
     } else {
-        qWarning() << "Failed to delete file:" << path;
+        qWarning() << "Failed to delete file:" << path
+                   << "- Error:" << file.errorString();
         // 即使失败也要重新启动监视
         QTimer::singleShot(50, this, [this]() {
             setupFileWatcher();
@@ -299,13 +294,7 @@ void MenuFileModel::renameFile(const QString &path, const QString &newName) {
         qWarning() << "File does not exist:" << path;
         return;
     }
-    
-    // 检查是否为系统文件（需要特殊权限）
-    bool isSystemFile = path.startsWith(FileUtils::getSystemConfigDir());
-    if (isSystemFile) {
-        qWarning() << "Cannot rename system file without proper permissions:" << path;
-        return;
-    }
+
     
     // 构建新文件名
     QString newFileName = newName;
@@ -342,7 +331,8 @@ void MenuFileModel::renameFile(const QString &path, const QString &newName) {
             refresh();
         });
     } else {
-        qWarning() << "Failed to rename file from" << path << "to" << newPath;
+        qWarning() << "Failed to rename file from" << path << "to" << newPath
+                   << "- Error:" << file.errorString();
         // 即使失败也要重新启动监视
         QTimer::singleShot(50, this, [this]() {
             setupFileWatcher();
