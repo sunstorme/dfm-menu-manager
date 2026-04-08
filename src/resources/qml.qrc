@@ -14,6 +14,9 @@
         <file>../../qml/components/DSpinBox.qml</file>
         <file>../../qml/components/DBackground.qml</file>
         <file>../../qml/components/DRadioButton.qml</file>
+        <file>../../qml/components/DGlobalPrompt.qml</file>
+        <file>../../asset/info.svg</file>
+        <file>../../asset/warning.svg</file>
         <file>file_types.json</file>
     </qresource>
 </RCC>

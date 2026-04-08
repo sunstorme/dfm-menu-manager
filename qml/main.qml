@@ -154,6 +154,8 @@ ApplicationWindow {
                         text: qsTr("Add Sibling Menu")
                         onTriggered: {
                             console.log("Add sibling menu for:", model.name)
+                            // 强制保存 execCommandField 的编辑内容
+                            forceSaveExecCommand()
                             var index = getCurrentIndex()
                             menuTreeView.model.addSiblingItem(index, qsTr("New Menu"))
                             // 自动进入编辑模式
@@ -166,6 +168,8 @@ ApplicationWindow {
                         enabled: model.level < 3
                         onTriggered: {
                             console.log("Add child menu for:", model.name)
+                            // 强制保存 execCommandField 的编辑内容
+                            forceSaveExecCommand()
                             var index = getCurrentIndex()
                             menuTreeView.model.addChildItem(index, qsTr("New Menu"))
                             // 展开节点
@@ -193,6 +197,8 @@ ApplicationWindow {
                     enabled: !model.isSystem
                     onTriggered: {
                         console.log("Delete menu:", model.name)
+                        // 强制保存 execCommandField 的编辑内容
+                        forceSaveExecCommand()
                         var index = getCurrentIndex()
                         menuTreeView.model.removeItem(index)
                         // 保存到文件
@@ -328,6 +334,8 @@ ApplicationWindow {
                             }
                             root.editingDelegate.isEditing = false
                         }
+                        // 强制保存 execCommandField 的编辑内容
+                        forceSaveExecCommand()
                         // 更新当前选中的菜单项
                         currentItem = model
                     }
@@ -420,6 +428,8 @@ ApplicationWindow {
                         }
                         root.editingDelegate.isEditing = false
                     }
+                    // 强制保存 execCommandField 的编辑内容
+                    forceSaveExecCommand()
                     // 更新当前选中的菜单项
                     currentItem = model
                     // 显示右键菜单
@@ -433,6 +443,7 @@ ApplicationWindow {
 
     // 窗口状态管理
     Component.onCompleted: {
+        console.log("=== Component.onCompleted called ===")
         WindowManager.restoreState(root, root)
     }
     
@@ -450,11 +461,7 @@ ApplicationWindow {
             menuManager.saveCurrentModel()
         }
         // 强制保存 execCommandField 的编辑内容
-        if (execCommandField && execCommandField.focus && currentItem && currentMenuModel) {
-            var index = currentMenuModel.getIndex(currentItem.id)
-            currentMenuModel.updateItem(index, "execCommand", execCommandField.text)
-            menuManager.saveCurrentModel()
-        }
+        forceSaveExecCommand()
     }
 
     // 主布局 - 使用SplitView实现可拖动分隔器
@@ -800,6 +807,8 @@ ApplicationWindow {
                             text: qsTr("Add Menu")
                             onTriggered: {
                                 if (currentMenuModel !== null) {
+                                    // 强制保存 execCommandField 的编辑内容
+                                    forceSaveExecCommand()
                                     var rootIndex = currentMenuModel.index(0, 0)
                                     currentMenuModel.addChildItem(rootIndex, qsTr("New Menu"))
                                     // 保存到文件
@@ -1318,9 +1327,9 @@ ApplicationWindow {
                             }
                         }
                         
-                        // Exec (仅在有 Exec 命令时显示)
+                        // Exec (始终显示)
                         Column {
-                            visible: currentItem && currentItem.execCommand && currentItem.execCommand.length > 0
+                            visible: currentItem !== null
                             width: parent.width
                             spacing: 5
                             
@@ -1701,11 +1710,28 @@ ApplicationWindow {
     // 保存当前选中项的原始值，用于脏检查
     property var originalItemValues: null
     
+    // 辅助函数：强制保存 execCommandField 的编辑内容
+    function forceSaveExecCommand() {
+        if (execCommandField && currentItem && currentMenuModel && originalItemValues) {
+            // 检查字段内容是否与模型中的值不同
+            var currentText = execCommandField.text || ""
+            var modelText = currentItem.execCommand || ""
+            if (currentText !== modelText) {
+                var index = currentMenuModel.getIndex(currentItem.id)
+                currentMenuModel.updateItem(index, "execCommand", currentText)
+                originalItemValues.execCommand = currentText
+                menuManager.saveCurrentModel()
+                if (debugLogging) console.log("Force saved execCommand:", currentText)
+            }
+        }
+    }
+    
     // 监听 currentItem 变化，保存原始值
     onCurrentItemChanged: {
         if (currentItem) {
             // 深拷贝当前项的值
             originalItemValues = {
+                id: currentItem.id || "",
                 comment: currentItem.comment || "",
                 commentLocal: currentItem.commentLocal || "",
                 version: currentItem.version || "",
@@ -1726,6 +1752,11 @@ ApplicationWindow {
     function updateProperty(propertyName, newValue) {
         if (!currentItem || !currentMenuModel || !originalItemValues) {
             return
+        }
+
+        // 在更新其他属性之前，强制保存 execCommandField 的编辑内容
+        if (propertyName !== "execCommand") {
+            forceSaveExecCommand()
         }
 
         var oldValue = originalItemValues[propertyName]
@@ -1941,7 +1972,6 @@ ApplicationWindow {
     // 文件类型选择弹窗
     Components.DFileTypeSelectorDialog {
         id: fileTypeSelectorDialog
-        parent: root
         
         allFileTypes: fileTypeManager.allFileTypes
         categories: fileTypeManager.categories
@@ -1968,6 +1998,95 @@ ApplicationWindow {
         
         onSelectionChanged: function(suffixes) {
             console.log("Selection changed:", suffixes.join(":"))
+        }
+    }
+    
+    // ==================== 全局提示组件 ====================
+    
+    /**
+     * 全局提示组件实例
+     * 用于显示信息或警告提示
+     * 
+     * 使用方法：
+     * 1. 通过 showInfo() 或 showWarning() 函数显示提示
+     * 2. 提示会在4秒后自动消失（除非设置 persistent: true）
+     * 3. 用户可以点击关闭按钮立即关闭提示
+     * 
+     * 示例代码：
+     * showInfo("操作成功")
+     * showWarning("操作失败，请重试")
+     * 
+     * 或者直接创建组件实例：
+     * var prompt = globalPromptComponent.createObject(root, {
+     *     message: "自定义提示消息",
+     *     type: "info",
+     *     persistent: false
+     * })
+     */
+    Component {
+        id: globalPromptComponent
+        
+        Components.DGlobalPrompt {
+            // 组件属性在使用时动态设置
+        }
+    }
+    
+    /**
+     * 显示信息提示
+     * @param message 提示消息文本
+     * @param autoCloseInterval 自动关闭时间（毫秒），可选，默认4000ms
+     */
+    function showInfo(message, autoCloseInterval) {
+        var properties = {
+            message: message,
+            type: "info",
+            persistent: false
+        }
+        if (autoCloseInterval !== undefined) {
+            properties.autoCloseInterval = autoCloseInterval
+        }
+        var prompt = globalPromptComponent.createObject(root.contentItem, properties)
+        if (!prompt) {
+            console.error("Failed to create DGlobalPrompt")
+        } else {
+            console.log("DGlobalPrompt created successfully:", message)
+        }
+    }
+    
+    /**
+     * 显示警告提示
+     * @param message 提示消息文本
+     * @param autoCloseInterval 自动关闭时间（毫秒），可选，默认4000ms
+     * @param persistent 是否常驻显示（不自动关闭），可选，默认false
+     */
+    function showWarning(message, autoCloseInterval, persistent) {
+        var properties = {
+            message: message,
+            type: "warning",
+            persistent: persistent !== undefined ? persistent : false
+        }
+        if (autoCloseInterval !== undefined && !properties.persistent) {
+            properties.autoCloseInterval = autoCloseInterval
+        }
+        var prompt = globalPromptComponent.createObject(root.contentItem, properties)
+        if (!prompt) {
+            console.error("Failed to create DGlobalPrompt")
+        }
+    }
+    
+    /**
+     * 显示常驻提示（不自动消失）
+     * @param message 提示消息文本
+     * @param type 提示类型（"info"或"warning"），默认为"info"
+     */
+    function showPersistentPrompt(message, type) {
+        var prompt = globalPromptComponent.createObject(root.contentItem, {
+            message: message,
+            type: type || "info",
+            persistent: true
+        })
+        if (!prompt) {
+            console.error("Failed to create DGlobalPrompt")
         }
     }
 }
