@@ -434,406 +434,429 @@ ApplicationWindow {
                 color: Styles.Style.secondaryTextColor
             }
 
-            ScrollView {
+            ColumnLayout{
                 anchors.fill: parent
                 anchors.margins: Styles.Style.padding
-                contentWidth: availableWidth
-                contentHeight: column.implicitHeight
+                spacing: Styles.Style.spacing
                 
-                Column {
-                    id: column
-                    width: parent.width
-                    spacing: Styles.Style.spacing * 2
-                    
-                    Text {
-                        anchors.left: parent.left
-                        text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
-                        font: Styles.Style.h1Font
-                        color: Styles.Style.textColor
-                    }
-                    
-                    // 根节点属性
-                    Column {
-                        visible: currentItem !== null && currentItem.level === 0
-                        width: parent.width
-                        spacing: Styles.Style.spacing
-                        
-                        // Comment
-                        Components.DPropertyField {
-                            width: parent.width
-                            labelText: qsTr("Description")
-                            propertyName: "comment"
-                            fieldValue: currentItem ? currentItem.comment || "" : ""
-                            onValueEdited: function(name, value) { updateProperty(name, value) }
-                        }
-
-                        // Comment[zh_CN]
-                        Components.DPropertyField {
-                            width: parent.width
-                            labelText: qsTr("Description (Chinese)")
-                            propertyName: "commentLocal"
-                            fieldValue: currentItem ? currentItem.commentLocal || "" : ""
-                            onValueEdited: function(name, value) { updateProperty(name, value) }
-                        }
-
-                        // Version
-                        Components.DPropertyField {
-                            width: parent.width
-                            labelText: qsTr("Version")
-                            propertyName: "version"
-                            fieldValue: currentItem ? currentItem.version || "" : ""
-                            onValueEdited: function(name, value) { updateProperty(name, value) }
-                        }
-                    }
-                    
-                    // 菜单项属性
-                    Column {
-                        visible: currentItem !== null && currentItem.level > 0
-                        width: parent.width
-                        spacing: Styles.Style.spacing
-                        
-                        // Name
-                        Components.DPropertyField {
-                            width: parent.width
-                            labelText: qsTr("Menu Name")
-                            propertyName: "name"
-                            fieldValue: currentItem ? currentItem.name || "" : ""
-                            onValueEdited: function(name, value) { updateProperty(name, value) }
-                        }
-
-                        // Name[zh_CN]
-                        Components.DPropertyField {
-                            width: parent.width
-                            labelText: qsTr("Menu Name (Chinese)")
-                            propertyName: "nameLocal"
-                            fieldValue: currentItem ? currentItem.nameLocal || "" : ""
-                            onValueEdited: function(name, value) { updateProperty(name, value) }
-                        }
-                        
-                        // X-DFM-MenuTypes (checkbox)
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Menu Type")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            GridLayout {
-                                width: parent.width
-                                columns: 2
-                                rowSpacing: 5
-                                columnSpacing: 10
-                                
-                                Components.DCheckBox {
-                                    id: singleFileCheckBox
-                                    text: "SingleFile"
-                                    checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleFile") >= 0 : false
-
-                                    onClicked: toggleMenuType("SingleFile", checked)
-                                }
-                                Components.DCheckBox {
-                                    id: multiFilesCheckBox
-                                    text: "MultiFiles"
-                                    checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("MultiFiles") >= 0 : false
-
-                                    onClicked: toggleMenuType("MultiFiles", checked)
-                                }
-                                Components.DCheckBox {
-                                    id: filemanagerCheckBox
-                                    text: "Filemanager"
-                                    checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("Filemanager") >= 0 : false
-
-                                    onClicked: toggleMenuType("Filemanager", checked)
-                                }
-                                Components.DCheckBox {
-                                    id: singleDirCheckBox
-                                    text: "SingleDir"
-                                    checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleDir") >= 0 : false
-
-                                    onClicked: toggleMenuType("SingleDir", checked)
-                                }
-                                Components.DCheckBox {
-                                    id: blankSpaceCheckBox
-                                    text: "BlankSpace"
-                                    checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("BlankSpace") >= 0 : false
-
-                                    onClicked: toggleMenuType("BlankSpace", checked)
-                                }
-                            }
-                        }
-                                                
-                        // PosNum
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Position Number")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DSpinBox {
-                                id: positionSpinBox
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                from: 1
-                                to: 100
-                                value: currentItem ? currentItem.positionNumber || 1 : 1
-
-                                // 监听 currentItem 变化，恢复绑定
-                                Connections {
-                                    target: root
-                                    function onCurrentItemChanged() {
-                                        // 恢复 value 绑定
-                                        positionSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumber || 1 : 1
-                                        })
-                                    }
-                                }
-
-                                onUserModified: {
-                                    if (currentItem && currentMenuModel && originalItemValues) {
-                                        // 直接更新模型并保存
-                                        var index = currentMenuModel.getIndex(currentItem.id)
-                                        currentMenuModel.updateItem(index, "positionNumber", value)
-                                        // 更新原始值以避免重复保存
-                                        originalItemValues.positionNumber = value
-                                        // 保存到文件
-                                        menuManager.saveCurrentModel()
-                                        // 恢复绑定，确保切换项时值能正确更新
-                                        positionSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumber || 1 : 1
-                                        })
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // PosNum-SingleFile
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Position Number (SingleFile)")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DSpinBox {
-                                id: positionSingleFileSpinBox
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                from: 1
-                                to: 100
-                                value: currentItem ? currentItem.positionNumberSingleFile || 1 : 1
-
-                                // 监听 currentItem 变化，恢复绑定
-                                Connections {
-                                    target: root
-                                    function onCurrentItemChanged() {
-                                        // 恢复 value 绑定
-                                        positionSingleFileSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
-                                        })
-                                    }
-                                }
-
-                                onUserModified: {
-                                    if (currentItem && currentMenuModel && originalItemValues) {
-                                        // 直接更新模型并保存
-                                        var index = currentMenuModel.getIndex(currentItem.id)
-                                        currentMenuModel.updateItem(index, "positionNumberSingleFile", value)
-                                        // 更新原始值以避免重复保存
-                                        originalItemValues.positionNumberSingleFile = value
-                                        // 保存到文件
-                                        menuManager.saveCurrentModel()
-                                        // 恢复绑定，确保切换项时值能正确更新
-                                        positionSingleFileSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
-                                        })
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // PosNum-MultiFiles
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Position Number (MultiFiles)")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DSpinBox {
-                                id: positionMultiFilesSpinBox
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                from: 1
-                                to: 100
-                                value: currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
-
-                                // 监听 currentItem 变化，恢复绑定
-                                Connections {
-                                    target: root
-                                    function onCurrentItemChanged() {
-                                        // 恢复 value 绑定
-                                        positionMultiFilesSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
-                                        })
-                                    }
-                                }
-
-                                onUserModified: {
-                                    if (currentItem && currentMenuModel && originalItemValues) {
-                                        // 直接更新模型并保存
-                                        var index = currentMenuModel.getIndex(currentItem.id)
-                                        currentMenuModel.updateItem(index, "positionNumberMultiFiles", value)
-                                        // 更新原始值以避免重复保存
-                                        originalItemValues.positionNumberMultiFiles = value
-                                        // 保存到文件
-                                        menuManager.saveCurrentModel()
-                                        // 恢复绑定，确保切换项时值能正确更新
-                                        positionMultiFilesSpinBox.value = Qt.binding(function() {
-                                            return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
-                                        })
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Separator
-                        Column {
-                            width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Separator")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Row {
-                                width: parent.width
-                                spacing: Styles.Style.spacing * 4
-                                
-                                Components.DRadioButton {
-                                    id: separatorTopRadio
-                                    text: qsTr("Top")
-                                    checked: currentItem && currentItem.separator === "Top"
-                                    
-                                    onClicked: {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "separator", "Top")
-                                            // 更新原始值以避免重复保存
-                                            originalItemValues.separator = "Top"
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                        }
-                                    }
-                                }
-                                
-                                Components.DRadioButton {
-                                    id: separatorBottomRadio
-                                    text: qsTr("Bottom")
-                                    checked: currentItem && currentItem.separator === "Bottom"
-                                    
-                                    onClicked: {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "separator", "Bottom")
-                                            // 更新原始值以避免重复保存
-                                            originalItemValues.separator = "Bottom"
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // X-DFM-SupportSuffix (多行输入框+选择按钮)
-                        Column {
-                            width: parent.width
-                            spacing: 5
-
-                            Text {
-                                text: qsTr("Supported Suffixes")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-
-                            Row {
-                                width: parent.width
-                                height: Styles.Style.itemHeight * 3
-                                spacing: Styles.Style.spacing
-
-                                Components.DMultiLinePropertyField {
-                                    id: suffixField
-                                    width: parent.width - selectButton.width - parent.spacing
-                                    fieldHeight: parent.height
-                                    labelText: ""
-                                    placeholderText: qsTr("Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv")
-                                    fieldValue: {
-                                        if (currentItem && currentItem.supportSuffix) {
-                                            return currentItem.supportSuffix.join(":")
-                                        }
-                                        return ""
-                                    }
-
-                                    onValueEdited: function(value) {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            var suffixes = Utils.parseSuffixes(value, ":")
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "supportSuffix", suffixes)
-                                            originalItemValues.supportSuffix = suffixes.slice()
-                                            menuManager.saveCurrentModel()
-                                        }
-                                    }
-                                }
-
-                                Components.DButton {
-                                    id: selectButton
-                                    width: Styles.Style.itemHeight * 2
-                                    text: qsTr("Select")
-
-                                    onClicked: {
-                                        fileTypeSelectorDialog.open()
-                                    }
-                                }
-                            }
-                        }
-                        
-                        // Exec (始终显示)
-                        Components.DMultiLinePropertyField {
-                            id: execCommandField
-                            visible: currentItem !== null
-                            width: parent.width
-                            labelText: qsTr("Executable Command")
-                            fieldValue: currentItem ? currentItem.execCommand || "" : ""
-
-                            onValueEdited: function(value) {
-                                if (currentItem && currentMenuModel && originalItemValues) {
-                                    var index = currentMenuModel.getIndex(currentItem.id)
-                                    currentMenuModel.updateItem(index, "execCommand", value)
-                                    originalItemValues.execCommand = value
-                                    menuManager.saveCurrentModel()
-                                }
-                            }
-                        }
-                    }
+                Text {
+                    id: propertyTitle
+                    Layout.fillWidth: true
+                    text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
+                    font: Styles.Style.h1Font
+                    color: Styles.Style.textColor
                 }
-                
+
+                ScrollView {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    contentWidth: availableWidth
+                    contentHeight: column.implicitHeight
+                    
+                    Column {
+                        id: column
+                        width: parent.width
+                        spacing: Styles.Style.spacing * 2
+                        
+                        // 根节点属性
+                        Column {
+                            visible: currentItem !== null && currentItem.level === 0
+                            width: parent.width
+                            spacing: Styles.Style.spacing
+
+                            // Comment
+                            Components.DPropertyField {
+                                width: parent.width
+                                labelText: qsTr("Description")
+                                propertyName: "comment"
+                                fieldValue: currentItem ? currentItem.comment || "" : ""
+                                onValueEdited: function(name, value) { updateProperty(name, value) }
+                            }
+
+                            // Comment[zh_CN]
+                            Components.DPropertyField {
+                                width: parent.width
+                                labelText: qsTr("Description (Chinese)")
+                                propertyName: "commentLocal"
+                                fieldValue: currentItem ? currentItem.commentLocal || "" : ""
+                                onValueEdited: function(name, value) { updateProperty(name, value) }
+                            }
+
+                            // Version
+                            Components.DPropertyField {
+                                width: parent.width
+                                labelText: qsTr("Version")
+                                propertyName: "version"
+                                fieldValue: currentItem ? currentItem.version || "" : ""
+                                onValueEdited: function(name, value) { updateProperty(name, value) }
+                            }
+                        }
+                        
+                        // 菜单项属性
+                        Column {
+                            visible: currentItem !== null && currentItem.level > 0
+                            width: parent.width
+                            spacing: Styles.Style.spacing
+                            
+                            // Name
+                            Components.DPropertyField {
+                                width: parent.width
+                                labelText: qsTr("Menu Name")
+                                propertyName: "name"
+                                fieldValue: currentItem ? currentItem.name || "" : ""
+                                onValueEdited: function(name, value) { updateProperty(name, value) }
+                            }
+
+                            // Name[zh_CN]
+                            Components.DPropertyField {
+                                width: parent.width
+                                labelText: qsTr("Menu Name (Chinese)")
+                                propertyName: "nameLocal"
+                                fieldValue: currentItem ? currentItem.nameLocal || "" : ""
+                                onValueEdited: function(name, value) { updateProperty(name, value) }
+                            }
+                            
+                            // X-DFM-MenuTypes (checkbox)
+                            Column {
+                                width: parent.width
+                                spacing: 5
+                                
+                                Text {
+                                    text: qsTr("Menu Type")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+                                
+                                GridLayout {
+                                    width: parent.width
+                                    columns: 2
+                                    rowSpacing: 5
+                                    columnSpacing: 10
+                                    
+                                    Components.DCheckBox {
+                                        id: singleFileCheckBox
+                                        text: "SingleFile"
+                                        checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleFile") >= 0 : false
+
+                                        onClicked: toggleMenuType("SingleFile", checked)
+                                    }
+                                    Components.DCheckBox {
+                                        id: multiFilesCheckBox
+                                        text: "MultiFiles"
+                                        checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("MultiFiles") >= 0 : false
+
+                                        onClicked: toggleMenuType("MultiFiles", checked)
+                                    }
+                                    Components.DCheckBox {
+                                        id: filemanagerCheckBox
+                                        text: "Filemanager"
+                                        checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("Filemanager") >= 0 : false
+
+                                        onClicked: toggleMenuType("Filemanager", checked)
+                                    }
+                                    Components.DCheckBox {
+                                        id: singleDirCheckBox
+                                        text: "SingleDir"
+                                        checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("SingleDir") >= 0 : false
+
+                                        onClicked: toggleMenuType("SingleDir", checked)
+                                    }
+                                    Components.DCheckBox {
+                                        id: blankSpaceCheckBox
+                                        text: "BlankSpace"
+                                        checked: currentItem && currentItem.menuTypes ? currentItem.menuTypes.indexOf("BlankSpace") >= 0 : false
+
+                                        onClicked: toggleMenuType("BlankSpace", checked)
+                                    }
+                                }
+                            }
+                                                    
+                            // PosNum
+                            Column {
+                                width: parent.width
+                                spacing: 5
+                                
+                                Text {
+                                    text: qsTr("Position Number")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+                                
+                                Components.DSpinBox {
+                                    id: positionSpinBox
+                                    width: parent.width
+                                    height: Styles.Style.itemHeight
+                                    from: 1
+                                    to: 100
+                                    value: currentItem ? currentItem.positionNumber || 1 : 1
+
+                                    // 监听 currentItem 变化，恢复绑定
+                                    Connections {
+                                        target: root
+                                        function onCurrentItemChanged() {
+                                            // 恢复 value 绑定
+                                            positionSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumber || 1 : 1
+                                            })
+                                        }
+                                    }
+
+                                    onUserModified: {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            // 直接更新模型并保存
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "positionNumber", value)
+                                            // 更新原始值以避免重复保存
+                                            originalItemValues.positionNumber = value
+                                            // 保存到文件
+                                            menuManager.saveCurrentModel()
+                                            // 恢复绑定，确保切换项时值能正确更新
+                                            positionSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumber || 1 : 1
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // PosNum-SingleFile
+                            Column {
+                                width: parent.width
+                                spacing: 5
+                                
+                                Text {
+                                    text: qsTr("Position Number (SingleFile)")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+                                
+                                Components.DSpinBox {
+                                    id: positionSingleFileSpinBox
+                                    width: parent.width
+                                    height: Styles.Style.itemHeight
+                                    from: 1
+                                    to: 100
+                                    value: currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+
+                                    // 监听 currentItem 变化，恢复绑定
+                                    Connections {
+                                        target: root
+                                        function onCurrentItemChanged() {
+                                            // 恢复 value 绑定
+                                            positionSingleFileSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                            })
+                                        }
+                                    }
+
+                                    onUserModified: {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            // 直接更新模型并保存
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "positionNumberSingleFile", value)
+                                            // 更新原始值以避免重复保存
+                                            originalItemValues.positionNumberSingleFile = value
+                                            // 保存到文件
+                                            menuManager.saveCurrentModel()
+                                            // 恢复绑定，确保切换项时值能正确更新
+                                            positionSingleFileSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // PosNum-MultiFiles
+                            Column {
+                                width: parent.width
+                                spacing: 5
+                                
+                                Text {
+                                    text: qsTr("Position Number (MultiFiles)")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+                                
+                                Components.DSpinBox {
+                                    id: positionMultiFilesSpinBox
+                                    width: parent.width
+                                    height: Styles.Style.itemHeight
+                                    from: 1
+                                    to: 100
+                                    value: currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+
+                                    // 监听 currentItem 变化，恢复绑定
+                                    Connections {
+                                        target: root
+                                        function onCurrentItemChanged() {
+                                            // 恢复 value 绑定
+                                            positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                            })
+                                        }
+                                    }
+
+                                    onUserModified: {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            // 直接更新模型并保存
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "positionNumberMultiFiles", value)
+                                            // 更新原始值以避免重复保存
+                                            originalItemValues.positionNumberMultiFiles = value
+                                            // 保存到文件
+                                            menuManager.saveCurrentModel()
+                                            // 恢复绑定，确保切换项时值能正确更新
+                                            positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                                return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Separator
+                            Column {
+                                width: parent.width
+                                spacing: 5
+                                
+                                Text {
+                                    text: qsTr("Separator")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+                                
+                                Row {
+                                    width: parent.width
+                                    spacing: Styles.Style.spacing * 4
+                                    
+                                    Components.DRadioButton {
+                                        id: separatorTopRadio
+                                        text: qsTr("Top")
+                                        checked: currentItem && currentItem.separator === "Top"
+                                        
+                                        onClicked: {
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                // 直接更新模型并保存
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "separator", "Top")
+                                                // 更新原始值以避免重复保存
+                                                originalItemValues.separator = "Top"
+                                                // 保存到文件
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
+                                    }
+                                    
+                                    Components.DRadioButton {
+                                        id: separatorBottomRadio
+                                        text: qsTr("Bottom")
+                                        checked: currentItem && currentItem.separator === "Bottom"
+
+                                        onClicked: {
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                // 直接更新模型并保存
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "separator", "Bottom")
+                                                // 更新原始值以避免重复保存
+                                                originalItemValues.separator = "Bottom"
+                                                // 保存到文件
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
+                                    }
+
+                                    Components.DRadioButton {
+                                        id: separatorNoneRadio
+                                        text: qsTr("None")
+
+                                        checked: currentItem && (!currentItem.separator || currentItem.separator === "")
+
+                                        onClicked: {
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "separator", "")
+                                                originalItemValues.separator = ""
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // X-DFM-SupportSuffix (多行输入框+选择按钮)
+                            Column {
+                                width: parent.width
+                                spacing: 5
+
+                                Text {
+                                    text: qsTr("Supported Suffixes")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+
+                                Row {
+                                    width: parent.width
+                                    height: Styles.Style.itemHeight * 3
+                                    spacing: Styles.Style.spacing
+
+                                    Components.DMultiLinePropertyField {
+                                        id: suffixField
+                                        width: parent.width - selectButton.width - parent.spacing
+                                        fieldHeight: parent.height
+                                        labelText: ""
+                                        placeholderText: qsTr("Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv")
+                                        fieldValue: {
+                                            if (currentItem && currentItem.supportSuffix) {
+                                                return currentItem.supportSuffix.join(":")
+                                            }
+                                            return ""
+                                        }
+
+                                        onValueEdited: function(value) {
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                var suffixes = Utils.parseSuffixes(value, ":")
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "supportSuffix", suffixes)
+                                                originalItemValues.supportSuffix = suffixes.slice()
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
+                                    }
+
+                                    Components.DButton {
+                                        id: selectButton
+                                        width: Styles.Style.itemHeight * 2
+                                        text: qsTr("Select")
+
+                                        onClicked: {
+                                            fileTypeSelectorDialog.open()
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Exec (始终显示)
+                            Components.DMultiLinePropertyField {
+                                id: execCommandField
+                                visible: currentItem !== null
+                                width: parent.width
+                                labelText: qsTr("Executable Command")
+                                fieldValue: currentItem ? currentItem.execCommand || "" : ""
+
+                                onValueEdited: function(value) {
+                                    if (currentItem && currentMenuModel && originalItemValues) {
+                                        var index = currentMenuModel.getIndex(currentItem.id)
+                                        currentMenuModel.updateItem(index, "execCommand", value)
+                                        originalItemValues.execCommand = value
+                                        menuManager.saveCurrentModel()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                }
             }
             
             onWidthChanged: {

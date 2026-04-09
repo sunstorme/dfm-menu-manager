@@ -24,8 +24,8 @@ override_dh_missing:
 override_dh_install:
 	dh_install
 	# Install icons
-	install -D -m 644 debian/dfm-menu-manager.svg \
+	install -D -m 644 asset/dfm-menu-manager.svg \
 	    debian/dfm-menu-manager/usr/share/icons/hicolor/scalable/apps/dfm-menu-manager.svg || true
 	# Install desktop file
-	install -D -m 644 debian/dfm-menu-manager.desktop \
+	install -D -m 644 asset/dfm-menu-manager.desktop \
 	    debian/dfm-menu-manager/usr/share/applications/dfm-menu-manager.desktop || true

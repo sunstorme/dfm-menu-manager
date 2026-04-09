@@ -64,10 +64,8 @@ Column {
             text: root.fieldValue
             placeholderText: root.placeholderText
 
-            onFocusChanged: {
-                if (!focus) {
-                    root.valueEdited(text)
-                }
+            onEditingFinished: {
+                root.valueEdited(textArea.text)
             }
         }
     }
