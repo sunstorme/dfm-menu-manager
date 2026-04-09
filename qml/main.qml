@@ -84,216 +84,128 @@ ApplicationWindow {
                         spacing: Styles.Style.spacing
                         
                         // 用户配置文件区(可折叠)
-                        Rectangle {
+                        Components.DCollapsibleGroup {
                             id: userGroupBox
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            color: Styles.Style.backgroundColor
-                            border.color: Styles.Style.borderColor
-                            border.width: 1
-                            radius: Styles.Style.borderRadius
-                            
-                            implicitHeight: userHeader.height + (userExpanded ? userContent.height + 2 * Styles.Style.padding : 0)
-                            
-                            Behavior on implicitHeight {
-                                NumberAnimation {
-                                    duration: Styles.Style.animationDuration
-                                    easing.type: Easing.InOutQuad
-                                }
-                            }
-                            
-                            // 标题栏
-                            Rectangle {
-                                id: userHeader
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                color: Styles.Style.hoverColor
-                                radius: Styles.Style.borderRadius
-                                
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.leftMargin: Styles.Style.padding
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("User Configuration")
-                                    font: Styles.Style.h2Font
-                                    color: Styles.Style.textColor
-                                }
-                                
-                                Text {
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: Styles.Style.padding
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: userExpanded ? "▼" : "▶"
-                                    font: Styles.Style.tagFont
-                                    color: Styles.Style.secondaryTextColor
-                                }
-                                
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        userExpanded = !userExpanded
-                                    }
-                                }
-                            }
-                            
-                            // 内容区域
-                            Item {
-                                id: userContent
-                                anchors.top: userHeader.bottom
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.topMargin: Styles.Style.padding
-                                anchors.leftMargin: Styles.Style.padding
-                                anchors.rightMargin: Styles.Style.padding
-                                height: userExpanded ? implicitHeight : 0
-                                implicitHeight: userList.implicitHeight
-                                clip: true
-                                visible: userExpanded
-                                
-                                ListView {
-                                    id: userList
-                                    width: parent.width
-                                    height: parent.height
-                                    implicitHeight: contentHeight
-                                    model: MenuFileModel {
-                                        id: userFileModel
-                                        showSystemOnly: false
-                                    }
-                                    delegate: Delegates.FileDelegate {
-                                        rootWindow: root
-                                        userFileModelRef: userFileModel
-                                        systemFileModelRef: systemFileModel
-                                        fileContextMenu: contextMenu
-                                    }
-                                    clip: true
+                            title: qsTr("User Configuration")
+                            expanded: userExpanded
+                            onExpandedChanged: userExpanded = expanded
 
-                                    // 键盘事件处理
-                                    Keys.onPressed: function(event) {
-                                        console.log("userList: Key pressed:", event.key)
-                                        if (event.key === Qt.Key_F5) {
-                                            console.log("F5 pressed, refreshing file lists")
-                                            userFileModel.refresh()
-                                            systemFileModel.refresh()
-                                            event.accepted = true
-                                        } else if (event.key === Qt.Key_Delete) {
-                                            console.log("Delete key pressed, selectedFilePath:", selectedFilePath)
-                                            if (selectedFilePath !== "") {
-                                                var isSystemFile = selectedFilePath.indexOf("/usr/share/") !== -1
-                                                if (!isSystemFile) {
-                                                    console.log("Deleting user file:", selectedFilePath)
-                                                    userFileModel.deleteFile(selectedFilePath)
-                                                } else {
-                                                    console.log("Cannot delete system file")
-                                                }
-                                                event.accepted = true
+                            ListView {
+                                width: userGroupBox.width - 2 * Styles.Style.padding - 2 * userGroupBox.border.width
+                                height: userGroupBox.expanded ? contentHeight : 0
+                                implicitHeight: contentHeight
+                                model: MenuFileModel {
+                                    id: userFileModel
+                                    showSystemOnly: false
+                                }
+                                delegate: Delegates.FileDelegate {
+                                    rootWindow: root
+                                    userFileModelRef: userFileModel
+                                    systemFileModelRef: systemFileModel
+                                    fileContextMenu: contextMenu
+                                }
+                                clip: true
+
+                                Keys.onPressed: function(event) {
+                                    console.log("userList: Key pressed:", event.key)
+                                    if (event.key === Qt.Key_F5) {
+                                        console.log("F5 pressed, refreshing file lists")
+                                        userFileModel.refresh()
+                                        systemFileModel.refresh()
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Delete) {
+                                        console.log("Delete key pressed, selectedFilePath:", selectedFilePath)
+                                        if (selectedFilePath !== "") {
+                                            var isSystemFile = selectedFilePath.indexOf("/usr/share/") !== -1
+                                            if (!isSystemFile) {
+                                                console.log("Deleting user file:", selectedFilePath)
+                                                userFileModel.deleteFile(selectedFilePath)
+                                            } else {
+                                                console.log("Cannot delete system file")
                                             }
+                                            event.accepted = true
                                         }
                                     }
                                 }
                             }
                         }
-                        
+
                         // 系统配置文件区(可折叠)
-                        Rectangle {
+                        Components.DCollapsibleGroup {
                             id: systemGroupBox
                             Layout.fillWidth: true
                             Layout.fillHeight: true
-                            color: Styles.Style.backgroundColor
-                            border.color: Styles.Style.borderColor
-                            border.width: 1
-                            radius: Styles.Style.borderRadius
-                            
-                            implicitHeight: systemHeader.height + (systemExpanded ? systemContent.height + 2 * Styles.Style.padding : 0)
-                            
-                            Behavior on implicitHeight {
-                                NumberAnimation {
-                                    duration: Styles.Style.animationDuration
-                                    easing.type: Easing.InOutQuad
-                                }
-                            }
-                            
-                            // 标题栏
-                            Rectangle {
-                                id: systemHeader
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                color: Styles.Style.hoverColor
-                                radius: Styles.Style.borderRadius
-                                
-                                Text {
-                                    anchors.left: parent.left
-                                    anchors.leftMargin: Styles.Style.padding
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: qsTr("System Configuration")
-                                    font: Styles.Style.h2Font
-                                    color: Styles.Style.textColor
-                                }
-                                
-                                Text {
-                                    anchors.right: parent.right
-                                    anchors.rightMargin: Styles.Style.padding
-                                    anchors.verticalCenter: parent.verticalCenter
-                                    text: systemExpanded ? "▼" : "▶"
-                                    font: Styles.Style.tagFont
-                                    color: Styles.Style.secondaryTextColor
-                                }
-                                
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: {
-                                        systemExpanded = !systemExpanded
-                                    }
-                                }
-                            }
-                            
-                            // 内容区域
-                            Item {
-                                id: systemContent
-                                anchors.top: systemHeader.bottom
-                                anchors.left: parent.left
-                                anchors.right: parent.right
-                                anchors.topMargin: Styles.Style.padding
-                                anchors.leftMargin: Styles.Style.padding
-                                anchors.rightMargin: Styles.Style.padding
-                                anchors.bottomMargin:  Styles.Style.padding
-                                height: systemExpanded ? implicitHeight : 0
-                                implicitHeight: systemList.implicitHeight
-                                clip: true
-                                visible: systemExpanded
-                                
-                                ListView {
-                                    id: systemList
-                                    width: parent.width
-                                    height: parent.height
-                                    implicitHeight: contentHeight
-                                    model: MenuFileModel {
-                                        id: systemFileModel
-                                        showSystemOnly: true
-                                    }
-                                    delegate: Delegates.FileDelegate {
-                                        rootWindow: root
-                                        userFileModelRef: userFileModel
-                                        systemFileModelRef: systemFileModel
-                                        fileContextMenu: contextMenu
-                                    }
-                                    clip: true
+                            title: qsTr("System Configuration")
+                            expanded: systemExpanded
+                            onExpandedChanged: systemExpanded = expanded
 
-                                    // 键盘事件处理
-                                    Keys.onPressed: function(event) {
-                                        console.log("systemList: Key pressed:", event.key)
-                                        if (event.key === Qt.Key_F5) {
-                                            console.log("F5 pressed, refreshing file lists")
-                                            userFileModel.refresh()
-                                            systemFileModel.refresh()
-                                            event.accepted = true
-                                        } else if (event.key === Qt.Key_Delete) {
-                                            console.log("Delete key pressed in system list, but system files cannot be deleted")
-                                            // 系统文件列表不允许删除
-                                            event.accepted = true
-                                        }
+                            ListView {
+                                width: systemGroupBox.width - 2 * Styles.Style.padding - 2 * systemGroupBox.border.width
+                                height: systemGroupBox.expanded ? contentHeight : 0
+                                implicitHeight: contentHeight
+                                model: MenuFileModel {
+                                    id: systemFileModel
+                                    showSystemOnly: true
+                                }
+                                delegate: Delegates.FileDelegate {
+                                    rootWindow: root
+                                    userFileModelRef: userFileModel
+                                    systemFileModelRef: systemFileModel
+                                    fileContextMenu: contextMenu
+                                }
+                                clip: true
+
+                                Keys.onPressed: function(event) {
+                                    console.log("systemList: Key pressed:", event.key)
+                                    if (event.key === Qt.Key_F5) {
+                                        console.log("F5 pressed, refreshing file lists")
+                                        userFileModel.refresh()
+                                        systemFileModel.refresh()
+                                        event.accepted = true
+                                    } else if (event.key === Qt.Key_Delete) {
+                                        console.log("Delete key pressed in system list, but system files cannot be deleted")
+                                        event.accepted = true
                                     }
+                                }
+                            }
+                        }
+
+                        // 根节点属性区(可折叠)
+                        Components.DCollapsibleGroup {
+                            id: rootPropertyGroup
+                            Layout.fillWidth: true
+                            title: qsTr("Configuration Properties")
+                            expanded: rootConfigData !== null
+                            visible: rootConfigData !== null
+
+                            Column {
+                                width: rootPropertyGroup.width - 2 * Styles.Style.padding - 2 * rootPropertyGroup.border.width
+                                spacing: Styles.Style.spacing
+
+                                Components.DPropertyField {
+                                    width: parent.width
+                                    labelText: qsTr("Description")
+                                    propertyName: "comment"
+                                    fieldValue: rootConfigData ? rootConfigData.comment || "" : ""
+                                    onValueEdited: function(name, value) { updateProperty(name, value) }
+                                }
+
+                                Components.DPropertyField {
+                                    width: parent.width
+                                    labelText: qsTr("Description (Chinese)")
+                                    propertyName: "commentLocal"
+                                    fieldValue: rootConfigData ? rootConfigData.commentLocal || "" : ""
+                                    onValueEdited: function(name, value) { updateProperty(name, value) }
+                                }
+
+                                Components.DPropertyField {
+                                    width: parent.width
+                                    labelText: qsTr("Version")
+                                    propertyName: "version"
+                                    fieldValue: rootConfigData ? rootConfigData.version || "" : ""
+                                    onValueEdited: function(name, value) { updateProperty(name, value) }
                                 }
                             }
                         }
@@ -457,41 +369,7 @@ ApplicationWindow {
                         id: column
                         width: parent.width
                         spacing: Styles.Style.spacing * 2
-                        
-                        // 根节点属性
-                        Column {
-                            visible: currentItem !== null && currentItem.level === 0
-                            width: parent.width
-                            spacing: Styles.Style.spacing
 
-                            // Comment
-                            Components.DPropertyField {
-                                width: parent.width
-                                labelText: qsTr("Description")
-                                propertyName: "comment"
-                                fieldValue: currentItem ? currentItem.comment || "" : ""
-                                onValueEdited: function(name, value) { updateProperty(name, value) }
-                            }
-
-                            // Comment[zh_CN]
-                            Components.DPropertyField {
-                                width: parent.width
-                                labelText: qsTr("Description (Chinese)")
-                                propertyName: "commentLocal"
-                                fieldValue: currentItem ? currentItem.commentLocal || "" : ""
-                                onValueEdited: function(name, value) { updateProperty(name, value) }
-                            }
-
-                            // Version
-                            Components.DPropertyField {
-                                width: parent.width
-                                labelText: qsTr("Version")
-                                propertyName: "version"
-                                fieldValue: currentItem ? currentItem.version || "" : ""
-                                onValueEdited: function(name, value) { updateProperty(name, value) }
-                            }
-                        }
-                        
                         // 菜单项属性
                         Column {
                             visible: currentItem !== null && currentItem.level > 0
@@ -575,141 +453,137 @@ ApplicationWindow {
                             Column {
                                 width: parent.width
                                 spacing: 5
-                                
+
                                 Text {
                                     text: qsTr("Position Number")
                                     font: Styles.Style.h3Font
                                     color: Styles.Style.secondaryTextColor
                                 }
-                                
-                                Components.DSpinBox {
-                                    id: positionSpinBox
+
+                                Row {
                                     width: parent.width
-                                    height: Styles.Style.itemHeight
-                                    from: 1
-                                    to: 100
-                                    value: currentItem ? currentItem.positionNumber || 1 : 1
+                                    spacing: Styles.Style.spacing
 
-                                    // 监听 currentItem 变化，恢复绑定
-                                    Connections {
-                                        target: root
-                                        function onCurrentItemChanged() {
-                                            // 恢复 value 绑定
-                                            positionSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumber || 1 : 1
-                                            })
+                                    Column {
+                                        width: (parent.width - parent.spacing * 2) / 3
+                                        spacing: 3
+
+                                        Text {
+                                            text: qsTr("Default")
+                                            font: Styles.Style.bodyFont
+                                            color: Styles.Style.secondaryTextColor
+                                        }
+
+                                        Components.DSpinBox {
+                                            id: positionSpinBox
+                                            width: parent.width
+                                            height: Styles.Style.itemHeight
+                                            from: 1
+                                            to: 100
+                                            value: currentItem ? currentItem.positionNumber || 1 : 1
+
+                                            Connections {
+                                                target: root
+                                                function onCurrentItemChanged() {
+                                                    positionSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumber || 1 : 1
+                                                    })
+                                                }
+                                            }
+
+                                            onUserModified: {
+                                                if (currentItem && currentMenuModel && originalItemValues) {
+                                                    var index = currentMenuModel.getIndex(currentItem.id)
+                                                    currentMenuModel.updateItem(index, "positionNumber", value)
+                                                    originalItemValues.positionNumber = value
+                                                    menuManager.saveCurrentModel()
+                                                    positionSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumber || 1 : 1
+                                                    })
+                                                }
+                                            }
                                         }
                                     }
 
-                                    onUserModified: {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "positionNumber", value)
-                                            // 更新原始值以避免重复保存
-                                            originalItemValues.positionNumber = value
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                            // 恢复绑定，确保切换项时值能正确更新
-                                            positionSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumber || 1 : 1
-                                            })
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // PosNum-SingleFile
-                            Column {
-                                width: parent.width
-                                spacing: 5
-                                
-                                Text {
-                                    text: qsTr("Position Number (SingleFile)")
-                                    font: Styles.Style.h3Font
-                                    color: Styles.Style.secondaryTextColor
-                                }
-                                
-                                Components.DSpinBox {
-                                    id: positionSingleFileSpinBox
-                                    width: parent.width
-                                    height: Styles.Style.itemHeight
-                                    from: 1
-                                    to: 100
-                                    value: currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                    Column {
+                                        width: (parent.width - parent.spacing * 2) / 3
+                                        spacing: 3
 
-                                    // 监听 currentItem 变化，恢复绑定
-                                    Connections {
-                                        target: root
-                                        function onCurrentItemChanged() {
-                                            // 恢复 value 绑定
-                                            positionSingleFileSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
-                                            })
+                                        Text {
+                                            text: qsTr("SingleFile")
+                                            font: Styles.Style.bodyFont
+                                            color: Styles.Style.secondaryTextColor
+                                        }
+
+                                        Components.DSpinBox {
+                                            id: positionSingleFileSpinBox
+                                            width: parent.width
+                                            height: Styles.Style.itemHeight
+                                            from: 1
+                                            to: 100
+                                            value: currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+
+                                            Connections {
+                                                target: root
+                                                function onCurrentItemChanged() {
+                                                    positionSingleFileSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                                    })
+                                                }
+                                            }
+
+                                            onUserModified: {
+                                                if (currentItem && currentMenuModel && originalItemValues) {
+                                                    var index = currentMenuModel.getIndex(currentItem.id)
+                                                    currentMenuModel.updateItem(index, "positionNumberSingleFile", value)
+                                                    originalItemValues.positionNumberSingleFile = value
+                                                    menuManager.saveCurrentModel()
+                                                    positionSingleFileSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
+                                                    })
+                                                }
+                                            }
                                         }
                                     }
 
-                                    onUserModified: {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "positionNumberSingleFile", value)
-                                            // 更新原始值以避免重复保存
-                                            originalItemValues.positionNumberSingleFile = value
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                            // 恢复绑定，确保切换项时值能正确更新
-                                            positionSingleFileSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumberSingleFile || 1 : 1
-                                            })
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            // PosNum-MultiFiles
-                            Column {
-                                width: parent.width
-                                spacing: 5
-                                
-                                Text {
-                                    text: qsTr("Position Number (MultiFiles)")
-                                    font: Styles.Style.h3Font
-                                    color: Styles.Style.secondaryTextColor
-                                }
-                                
-                                Components.DSpinBox {
-                                    id: positionMultiFilesSpinBox
-                                    width: parent.width
-                                    height: Styles.Style.itemHeight
-                                    from: 1
-                                    to: 100
-                                    value: currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                    Column {
+                                        width: (parent.width - parent.spacing * 2) / 3
+                                        spacing: 3
 
-                                    // 监听 currentItem 变化，恢复绑定
-                                    Connections {
-                                        target: root
-                                        function onCurrentItemChanged() {
-                                            // 恢复 value 绑定
-                                            positionMultiFilesSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
-                                            })
+                                        Text {
+                                            text: qsTr("MultiFiles")
+                                            font: Styles.Style.bodyFont
+                                            color: Styles.Style.secondaryTextColor
                                         }
-                                    }
 
-                                    onUserModified: {
-                                        if (currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "positionNumberMultiFiles", value)
-                                            // 更新原始值以避免重复保存
-                                            originalItemValues.positionNumberMultiFiles = value
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                            // 恢复绑定，确保切换项时值能正确更新
-                                            positionMultiFilesSpinBox.value = Qt.binding(function() {
-                                                return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
-                                            })
+                                        Components.DSpinBox {
+                                            id: positionMultiFilesSpinBox
+                                            width: parent.width
+                                            height: Styles.Style.itemHeight
+                                            from: 1
+                                            to: 100
+                                            value: currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+
+                                            Connections {
+                                                target: root
+                                                function onCurrentItemChanged() {
+                                                    positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                                    })
+                                                }
+                                            }
+
+                                            onUserModified: {
+                                                if (currentItem && currentMenuModel && originalItemValues) {
+                                                    var index = currentMenuModel.getIndex(currentItem.id)
+                                                    currentMenuModel.updateItem(index, "positionNumberMultiFiles", value)
+                                                    originalItemValues.positionNumberMultiFiles = value
+                                                    menuManager.saveCurrentModel()
+                                                    positionMultiFilesSpinBox.value = Qt.binding(function() {
+                                                        return currentItem ? currentItem.positionNumberMultiFiles || 1 : 1
+                                                    })
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -874,6 +748,9 @@ ApplicationWindow {
 
     // 当前菜单树模型
     property var currentMenuModel: null
+
+    // 当前配置文件的根节点属性（version/comment/commentLocal）
+    property var rootConfigData: null
     
     // 编辑状态管理
     property string editingFilePath: ""  // 当前正在编辑的文件路径
@@ -1095,6 +972,12 @@ ApplicationWindow {
             if (currentMenuModel) {
                 console.log("Menu model loaded, row count:", currentMenuModel.rowCount())
                 console.log("TreeView width:", menuTreeView.width, "height:", menuTreeView.height)
+
+                // 提取根节点属性数据
+                var allItems = currentMenuModel.getAllItems()
+                if (allItems.length > 0) {
+                    rootConfigData = allItems[0]
+                }
                 
                 // 展开所有节点
                 menuTreeView.expandRecursively(-1, -1)

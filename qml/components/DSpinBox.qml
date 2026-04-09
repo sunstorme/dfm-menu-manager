@@ -71,7 +71,7 @@ SpinBox {
         Text {
             text: "▲"
             font.pixelSize: Styles.Style.smallFont.pixelSize
-            color: upMouseArea.containsMouse ? Styles.Style.primaryColor : root.textColor
+            color: upMouseArea.containsMouse ? Styles.Style.primaryColor : Styles.Style.secondaryTextColor
             anchors.centerIn: parent
 
             Behavior on color {
@@ -103,7 +103,7 @@ SpinBox {
         Text {
             text: "▼"
             font.pixelSize: Styles.Style.smallFont.pixelSize
-            color: downMouseArea.containsMouse ? Styles.Style.primaryColor : root.textColor
+            color: downMouseArea.containsMouse ? Styles.Style.primaryColor : Styles.Style.secondaryTextColor
             anchors.centerIn: parent
 
             Behavior on color {

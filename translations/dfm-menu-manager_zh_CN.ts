@@ -159,21 +159,21 @@
         <translation type="vanished">添加同级菜单</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="406"/>
+        <location filename="../qml/main.qml" line="318"/>
         <source>New Menu</source>
         <translation>新菜单</translation>
     </message>
     <message>
         <source>Add Child Menu</source>
-        <translation type="vanished">添加子菜单</translation>
+        <translation>添加子菜单</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="915"/>
+        <location filename="../qml/main.qml" line="792"/>
         <source>Rename</source>
         <translation>重命名</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="928"/>
+        <location filename="../qml/main.qml" line="805"/>
         <source>Delete</source>
         <translation>删除</translation>
     </message>
@@ -199,132 +199,150 @@
         <translation>搜索配置文件...</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="117"/>
+        <location filename="../qml/main.qml" line="91"/>
         <source>User Configuration</source>
         <translation>用户配置</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="228"/>
+        <location filename="../qml/main.qml" line="140"/>
         <source>System Configuration</source>
         <translation>系统配置</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="342"/>
+        <location filename="../qml/main.qml" line="254"/>
         <source>Menu Structure Editor</source>
         <translation>菜单结构</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="319"/>
+        <location filename="../qml/main.qml" line="231"/>
         <source>Please select a configuration file</source>
         <translation>请选择一个配置文件</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="400"/>
+        <location filename="../qml/main.qml" line="312"/>
         <source>Add Menu</source>
         <translation>添加菜单</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="445"/>
+        <location filename="../qml/main.qml" line="357"/>
         <source>Property Editor: </source>
         <translation>属性: </translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="445"/>
+        <location filename="../qml/main.qml" line="357"/>
         <source>Property Editor</source>
         <translation>属性</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="470"/>
+        <location filename="../qml/main.qml" line="189"/>
         <source>Description</source>
         <translation>描述</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="479"/>
+        <location filename="../qml/main.qml" line="179"/>
+        <source>Configuration Properties</source>
+        <translation>配置属性</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="197"/>
         <source>Description (Chinese)</source>
         <translation>描述(中文)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="488"/>
+        <location filename="../qml/main.qml" line="205"/>
         <source>Version</source>
         <translation>版本号</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="504"/>
+        <location filename="../qml/main.qml" line="382"/>
         <source>Menu Name</source>
         <translation>菜单名称</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="513"/>
+        <location filename="../qml/main.qml" line="391"/>
         <source>Menu Name (Chinese)</source>
         <translation>菜单名称(中文)</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="525"/>
+        <location filename="../qml/main.qml" line="403"/>
         <source>Menu Type</source>
         <translation>菜单类型</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="628"/>
         <source>Position Number (SingleFile)</source>
-        <translation>位置编号（单文件）</translation>
+        <translation type="vanished">位置编号（单文件）</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="676"/>
         <source>Position Number (MultiFiles)</source>
-        <translation>位置编号（多文件）</translation>
+        <translation type="vanished">位置编号（多文件）</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="724"/>
+        <location filename="../qml/main.qml" line="598"/>
         <source>Separator</source>
         <translation>分隔符</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="735"/>
+        <location filename="../qml/main.qml" line="609"/>
         <source>Top</source>
         <translation>顶部</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="753"/>
+        <location filename="../qml/main.qml" line="627"/>
         <source>Bottom</source>
         <translation>底部</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="771"/>
+        <location filename="../qml/main.qml" line="645"/>
         <source>None</source>
         <translation>无</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="793"/>
+        <location filename="../qml/main.qml" line="667"/>
         <source>Supported Suffixes</source>
         <translation>支持的后缀</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="808"/>
+        <location filename="../qml/main.qml" line="682"/>
         <source>Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv</source>
         <translation>输入支持的后缀，用冒号分隔，如：mp4:avi:mkv</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="830"/>
+        <location filename="../qml/main.qml" line="704"/>
         <source>Select</source>
         <translation>选择</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="580"/>
+        <location filename="../qml/main.qml" line="458"/>
         <source>Position Number</source>
         <translation>位置编号</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="320"/>
+        <location filename="../qml/main.qml" line="232"/>
         <source>Loading configuration...</source>
         <translation>正在加载配置...</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="844"/>
+        <location filename="../qml/main.qml" line="472"/>
+        <source>Default</source>
+        <translation>默认</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="513"/>
+        <source>SingleFile</source>
+        <translation>单文件</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="554"/>
+        <source>MultiFiles</source>
+        <translation>多文件</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="718"/>
         <source>Executable Command</source>
         <translation>可执行命令</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="432"/>
+        <location filename="../qml/main.qml" line="344"/>
         <source>Please select a menu item</source>
         <translation>请选择一个菜单项</translation>
     </message>
@@ -333,22 +351,22 @@
         <translation type="vanished">系统</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="890"/>
+        <location filename="../qml/main.qml" line="767"/>
         <source>Refresh List</source>
         <translation>刷新列表</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="901"/>
+        <location filename="../qml/main.qml" line="778"/>
         <source>New File</source>
         <translation>新建文件</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="943"/>
+        <location filename="../qml/main.qml" line="820"/>
         <source>Open Containing Folder</source>
         <translation>打开所在文件夹</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="961"/>
+        <location filename="../qml/main.qml" line="838"/>
         <source>Open File</source>
         <translation>打开文件</translation>
     </message>

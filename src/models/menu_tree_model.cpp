@@ -409,8 +409,8 @@ void MenuTreeModel::buildTree(const ConfigParser::ConfigData &data) {
         m_rootItem->id = rootAction->id;
         m_rootItem->name = rootAction->name;
         m_rootItem->nameLocal = rootAction->nameLocal;
-        m_rootItem->comment = rootAction->comment;
-        m_rootItem->commentLocal = rootAction->commentLocal;
+        m_rootItem->comment = data.comment.isEmpty() ? rootAction->comment : data.comment;
+        m_rootItem->commentLocal = data.commentLocal.isEmpty() ? rootAction->commentLocal : data.commentLocal;
         m_rootItem->level = Constants::Defaults::ROOT_LEVEL;
         m_rootItem->isRoot = true;
         m_rootItem->configFile = rootAction->configFile;
