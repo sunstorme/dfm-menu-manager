@@ -15,6 +15,11 @@
         <file>../../qml/components/DBackground.qml</file>
         <file>../../qml/components/DRadioButton.qml</file>
         <file>../../qml/components/DGlobalPrompt.qml</file>
+        <file>../../qml/components/DPropertyField.qml</file>
+        <file>../../qml/components/DMultiLinePropertyField.qml</file>
+        <file>../../qml/delegates/TreeDelegate.qml</file>
+        <file>../../qml/delegates/FileDelegate.qml</file>
+        <file>../../qml/js/Utils.js</file>
         <file>../../asset/info.svg</file>
         <file>../../asset/warning.svg</file>
         <file>file_types.json</file>

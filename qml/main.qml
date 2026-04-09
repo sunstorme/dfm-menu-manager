@@ -6,6 +6,8 @@ import QtQuick.Layouts
 import DFMMenu 1.0
 import "qrc:/qml/styles" as Styles
 import "qrc:/qml/components" as Components
+import "qrc:/qml/delegates" as Delegates
+import "qrc:/qml/js/Utils.js" as Utils
 
 ApplicationWindow {
     id: root
@@ -18,427 +20,6 @@ ApplicationWindow {
 
     // 调试日志开关（生产环境应设置为 false）
     property bool debugLogging: false
-    
-    // TreeView delegate
-    Component {
-        id: treeViewDelegate
-        
-        Rectangle {
-            id: delegateItem
-            
-            implicitWidth: treeView.width
-            implicitHeight: label.implicitHeight * 2
-            
-            readonly property real indent: 20
-            readonly property real padding: 5
-            property bool isEditing: false
-            
-            // 当 isEditing 改变时，更新全局 editingDelegate
-            onIsEditingChanged: {
-                if (isEditing) {
-                    // 如果有其他项目正在编辑，先结束它
-                    if (root.editingDelegate && root.editingDelegate !== delegateItem && root.editingDelegate.isEditing) {
-                        root.editingDelegate.isEditing = false
-                    }
-                    root.editingDelegate = delegateItem
-                } else if (root.editingDelegate === delegateItem) {
-                    root.editingDelegate = null
-                }
-            }
-            
-            required property TreeView treeView
-            required property bool isTreeNode
-            required property bool expanded
-            required property int hasChildren
-            required property int depth
-            
-            color: {
-                if (delegateItem.treeView.currentRow === row) {
-                    return Styles.Style.selectColor
-                } else if (delegateMouseArea.containsMouse) {
-                    return Styles.Style.hoverColor
-                } else {
-                    return "transparent"
-                }
-            }
-            
-            border.color: "transparent"
-            border.width: 1
-            radius: Styles.Style.borderRadius
-            
-            // 获取当前项的索引（使用ID）
-            function getCurrentIndex() {
-                return menuTreeView.model.getIndex(model.id || "")
-            }
-            
-            // 递归展开/折叠指定节点的所有子孙节点
-            function setExpandedRecursive(index, expand) {
-                if (!index.valid) {
-                    return
-                }
-                
-                // 获取视图中的行号
-                var viewRow = menuTreeView.rowAtIndex(index)
-                if (viewRow >= 0) {
-                    if (expand) {
-                        menuTreeView.expand(viewRow)
-                    } else {
-                        menuTreeView.collapse(viewRow)
-                    }
-                }
-                
-                // 递归处理所有子节点
-                var rowCount = currentMenuModel.rowCount(index)
-                for (var i = 0; i < rowCount; i++) {
-                    var childIndex = currentMenuModel.index(i, 0, index)
-                    setExpandedRecursive(childIndex, expand)
-                }
-            }
-            
-            // 检查指定节点的所有子孙节点是否都已展开（不包括当前节点本身）
-            function areAllDescendantsExpanded(index) {
-                if (!index.valid) {
-                    return true
-                }
-                
-                // 递归检查所有子节点
-                var rowCount = currentMenuModel.rowCount(index)
-                for (var i = 0; i < rowCount; i++) {
-                    var childIndex = currentMenuModel.index(i, 0, index)
-                    var viewRow = menuTreeView.rowAtIndex(childIndex)
-                    // 如果子节点未展开，返回false
-                    if (viewRow >= 0 && !menuTreeView.isExpanded(viewRow)) {
-                        return false
-                    }
-                    // 递归检查子节点的后代
-                    if (!areAllDescendantsExpanded(childIndex)) {
-                        return false
-                    }
-                }
-                
-                return true
-            }
-            
-            // 检查指定节点的所有子孙节点是否都已折叠（不包括当前节点本身）
-            function areAllDescendantsCollapsed(index) {
-                if (!index.valid) {
-                    return true
-                }
-                
-                // 递归检查所有子节点
-                var rowCount = currentMenuModel.rowCount(index)
-                for (var i = 0; i < rowCount; i++) {
-                    var childIndex = currentMenuModel.index(i, 0, index)
-                    var viewRow = menuTreeView.rowAtIndex(childIndex)
-                    // 如果子节点已展开，返回false
-                    if (viewRow >= 0 && menuTreeView.isExpanded(viewRow)) {
-                        return false
-                    }
-                    // 递归检查子节点的后代
-                    if (!areAllDescendantsCollapsed(childIndex)) {
-                        return false
-                    }
-                }
-                
-                return true
-            }
-            
-            // 右键菜单
-            Menu {
-                id: contextMenu
-                
-                Menu {
-                    title: qsTr("Add")
-                    
-                    MenuItem {
-                        text: qsTr("Add Sibling Menu")
-                        onTriggered: {
-                            console.log("Add sibling menu for:", model.name)
-                            // 强制保存 execCommandField 的编辑内容
-                            forceSaveExecCommand()
-                            var index = getCurrentIndex()
-                            menuTreeView.model.addSiblingItem(index, qsTr("New Menu"))
-                            // 自动进入编辑模式
-                            editTimer.start()
-                        }
-                    }
-                    
-                    MenuItem {
-                        text: qsTr("Add Child Menu")
-                        enabled: model.level < 3
-                        onTriggered: {
-                            console.log("Add child menu for:", model.name)
-                            // 强制保存 execCommandField 的编辑内容
-                            forceSaveExecCommand()
-                            var index = getCurrentIndex()
-                            menuTreeView.model.addChildItem(index, qsTr("New Menu"))
-                            // 展开节点
-                            treeView.expand(row)
-                            // 自动进入编辑模式
-                            editTimer.start()
-                        }
-                    }
-                }
-                
-                MenuItem {
-                    text: qsTr("Rename")
-                    onTriggered: {
-                        console.log("Rename menu:", model.name)
-                        delegateItem.isEditing = true
-                        editTextField.forceActiveFocus()
-                        editTextField.selectAll()
-                    }
-                }
-                
-                MenuSeparator {}
-                
-                MenuItem {
-                    text: qsTr("Delete")
-                    enabled: !model.isSystem
-                    onTriggered: {
-                        console.log("Delete menu:", model.name)
-                        // 强制保存 execCommandField 的编辑内容
-                        forceSaveExecCommand()
-                        var index = getCurrentIndex()
-                        menuTreeView.model.removeItem(index)
-                        // 保存到文件
-                        menuManager.saveCurrentModel()
-                    }
-                }
-                
-                MenuSeparator {}
-                
-                MenuItem {
-                    text: qsTr("Expand")
-                    enabled: delegateItem.hasChildren > 0 && !delegateItem.expanded
-                    onTriggered: {
-                        console.log("Expand node:", model.name)
-                        treeView.expand(row)
-                    }
-                }
-                
-                MenuItem {
-                    text: qsTr("Collapse")
-                    enabled: delegateItem.hasChildren > 0 && delegateItem.expanded
-                    onTriggered: {
-                        console.log("Collapse node:", model.name)
-                        treeView.collapse(row)
-                    }
-                }
-                
-                MenuItem {
-                    text: qsTr("Expand All")
-                    enabled: delegateItem.hasChildren > 0 && !delegateItem.expanded && !areAllDescendantsExpanded(getCurrentIndex())
-                    onTriggered: {
-                        console.log("Expand all from:", model.name)
-                        var index = getCurrentIndex()
-                        setExpandedRecursive(index, true)
-                    }
-                }
-                
-                MenuItem {
-                    text: qsTr("Collapse All")
-                    enabled: delegateItem.hasChildren > 0 && delegateItem.expanded && !areAllDescendantsCollapsed(getCurrentIndex())
-                    onTriggered: {
-                        console.log("Collapse all from:", model.name)
-                        var index = getCurrentIndex()
-                        setExpandedRecursive(index, false)
-                    }
-                }
-            }
-            
-            // 定时器，用于延迟进入编辑模式（等待模型更新）
-            Timer {
-                id: editTimer
-                interval: 100
-                onTriggered: {
-                    delegateItem.isEditing = true
-                    editTextField.forceActiveFocus()
-                    editTextField.selectAll()
-                }
-            }
-            
-            // 展开/折叠按钮
-            Text {
-                id: indicator
-                visible: delegateItem.isTreeNode && delegateItem.hasChildren > 0
-                x: delegateItem.padding + (delegateItem.depth * delegateItem.indent)
-                width: delegateItem.indent
-                height: delegateItem.height
-                verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignHCenter
-                text: delegateItem.expanded ? "▼" : "▶"
-                font: Styles.Style.tagFont
-                color: Styles.Style.secondaryTextColor
-                
-                TapHandler {
-                    onTapped: {
-                        // 如果有其他项目正在编辑，先结束编辑
-                        if (root.editingDelegate && root.editingDelegate !== delegateItem && root.editingDelegate.isEditing) {
-                            if (root.editingDelegate.editTextField && root.editingDelegate.editTextField.text.trim() !== "") {
-                                var editingIndex = root.editingDelegate.getCurrentIndex()
-                                menuTreeView.model.renameItem(editingIndex, root.editingDelegate.editTextField.text.trim())
-                                menuManager.saveCurrentModel()
-                            }
-                            root.editingDelegate.isEditing = false
-                        }
-                        
-                        // 记录展开状态变化
-                        var newExpandedState = !delegateItem.expanded
-                        var itemId = model.id || ""
-                        if (itemId !== "") {
-                            if (newExpandedState) {
-                                // 展开：添加到列表
-                                if (savedExpandedItemIds.indexOf(itemId) < 0) {
-                                    savedExpandedItemIds.push(itemId)
-                                }
-                            } else {
-                                // 折叠：从列表移除
-                                var index = savedExpandedItemIds.indexOf(itemId)
-                                if (index >= 0) {
-                                    savedExpandedItemIds.splice(index, 1)
-                                }
-                            }
-                        }
-                        
-                        treeView.toggleExpanded(row)
-                        console.log("Toggle expand:", model.name, "expanded:", newExpandedState, "hasChildren:", delegateItem.hasChildren)
-                    }
-                }
-            }
-            
-            // 文本内容（非编辑模式）
-            Text {
-                id: label
-                visible: !delegateItem.isEditing
-                x: delegateItem.padding + (delegateItem.isTreeNode ? (delegateItem.depth + 1) * delegateItem.indent : delegateItem.depth * delegateItem.indent)
-                width: delegateItem.width - delegateItem.padding - x
-                height: delegateItem.height
-                verticalAlignment: Text.AlignVCenter
-                text: model.nameLocal || model.name || ""
-                font.pixelSize: Styles.Style.bodyFont.pixelSize
-                font.family: Styles.Style.bodyFont.family
-                font.bold: delegateItem.treeView.currentRow === row
-                color: Styles.Style.textColor
-                elide: Text.ElideRight
-                
-                TapHandler {
-                    onTapped: {
-                        console.log("Clicked item:", model.name, "nameLocal:", model.nameLocal, "depth:", delegateItem.depth, "hasChildren:", delegateItem.hasChildren)
-                        // 如果有其他项目正在编辑，先结束编辑
-                        if (root.editingDelegate && root.editingDelegate !== delegateItem && root.editingDelegate.isEditing) {
-                            if (root.editingDelegate.editTextField && root.editingDelegate.editTextField.text.trim() !== "") {
-                                var editingIndex = root.editingDelegate.getCurrentIndex()
-                                menuTreeView.model.renameItem(editingIndex, root.editingDelegate.editTextField.text.trim())
-                                menuManager.saveCurrentModel()
-                            }
-                            root.editingDelegate.isEditing = false
-                        }
-                        // 强制保存 execCommandField 的编辑内容
-                        forceSaveExecCommand()
-                        // 更新当前选中的菜单项
-                        currentItem = model
-                    }
-                    
-                    onDoubleTapped: {
-                        console.log("Double clicked item:", model.name)
-                        if (!model.isSystem) {
-                            delegateItem.isEditing = true
-                            editTextField.forceActiveFocus()
-                            editTextField.selectAll()
-                        }
-                    }
-                }
-            }
-            
-            // 编辑模式下的TextField
-            Components.DTextField {
-                id: editTextField
-                visible: delegateItem.isEditing
-                x: delegateItem.padding + (delegateItem.isTreeNode ? (delegateItem.depth + 1) * delegateItem.indent : delegateItem.depth * delegateItem.indent)
-                width: delegateItem.width - delegateItem.padding - x - 10
-                height: delegateItem.height - 4
-                anchors.verticalCenter: parent.verticalCenter
-                text: model.nameLocal || model.name || ""
-                
-                onAccepted: {
-                    console.log("Edit accepted, new name:", text)
-                    if (text.trim() !== "") {
-                        var index = getCurrentIndex()
-                        menuTreeView.model.renameItem(index, text.trim())
-                        // 保存到文件
-                        menuManager.saveCurrentModel()
-                    }
-                    delegateItem.isEditing = false
-                }
-                
-                Keys.onPressed: function(event) {
-                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                        console.log("Enter pressed, new name:", text)
-                        if (text.trim() !== "") {
-                            var index = getCurrentIndex()
-                            menuTreeView.model.renameItem(index, text.trim())
-                            // 保存到文件
-                            menuManager.saveCurrentModel()
-                        }
-                        delegateItem.isEditing = false
-                        event.accepted = true
-                    } else if (event.key === Qt.Key_Escape) {
-                        console.log("Escape pressed, cancel edit")
-                        delegateItem.isEditing = false
-                        event.accepted = true
-                    }
-                }
-                
-                onFocusChanged: {
-                    if (!focus && delegateItem.isEditing) {
-                        console.log("Focus lost, save edit")
-                        if (text.trim() !== "") {
-                            var index = getCurrentIndex()
-                            menuTreeView.model.renameItem(index, text.trim())
-                            // 保存到文件
-                            menuManager.saveCurrentModel()
-                        }
-                        delegateItem.isEditing = false
-                    }
-                }
-            }
-            
-            // 右键菜单触发器
-            MouseArea {
-                id: delegateMouseArea
-                anchors.fill: parent
-                acceptedButtons: Qt.RightButton
-                propagateComposedEvents: true
-                hoverEnabled: true
-                
-                onClicked: function(mouse) {
-                    // 如果模型为空或没有项目，不处理右键点击，让事件传递给背景区域的MouseArea
-                    if (currentMenuModel === null || currentMenuModel.rowCount() === 0) {
-                        mouse.accepted = false
-                        return
-                    }
-                    
-                    // 如果有其他项目正在编辑，先结束编辑
-                    if (root.editingDelegate && root.editingDelegate !== delegateItem && root.editingDelegate.isEditing) {
-                        if (root.editingDelegate.editTextField && root.editingDelegate.editTextField.text.trim() !== "") {
-                            var editingIndex = root.editingDelegate.getCurrentIndex()
-                            menuTreeView.model.renameItem(editingIndex, root.editingDelegate.editTextField.text.trim())
-                            menuManager.saveCurrentModel()
-                        }
-                        root.editingDelegate.isEditing = false
-                    }
-                    // 强制保存 execCommandField 的编辑内容
-                    forceSaveExecCommand()
-                    // 更新当前选中的菜单项
-                    currentItem = model
-                    // 显示右键菜单
-                    contextMenu.popup(mouse)
-                    mouse.accepted = true
-                }
-            }
-        }
-    }
     
 
     // 窗口状态管理
@@ -453,9 +34,9 @@ ApplicationWindow {
 
     // 窗口关闭时保存正在编辑的内容
     onClosing: function(close) {
-        // 强制保存 suffixTextArea 的编辑内容
-        if (suffixTextArea && suffixTextArea.focus && currentItem && currentMenuModel) {
-            var suffixes = suffixTextArea.text.split(":").filter(function(s) { return s.trim() !== "" })
+        // 强制保存 suffixField 的编辑内容
+        if (suffixField && suffixField.hasFocus && currentItem && currentMenuModel) {
+            var suffixes = Utils.parseSuffixes(suffixField.currentText, ":")
             var index = currentMenuModel.getIndex(currentItem.id)
             currentMenuModel.updateItem(index, "supportSuffix", suffixes)
             menuManager.saveCurrentModel()
@@ -579,9 +160,14 @@ ApplicationWindow {
                                         id: userFileModel
                                         showSystemOnly: false
                                     }
-                                    delegate: fileDelegate
+                                    delegate: Delegates.FileDelegate {
+                                        rootWindow: root
+                                        userFileModelRef: userFileModel
+                                        systemFileModelRef: systemFileModel
+                                        fileContextMenu: contextMenu
+                                    }
                                     clip: true
-                                    
+
                                     // 键盘事件处理
                                     Keys.onPressed: function(event) {
                                         console.log("userList: Key pressed:", event.key)
@@ -686,9 +272,14 @@ ApplicationWindow {
                                         id: systemFileModel
                                         showSystemOnly: true
                                     }
-                                    delegate: fileDelegate
+                                    delegate: Delegates.FileDelegate {
+                                        rootWindow: root
+                                        userFileModelRef: userFileModel
+                                        systemFileModelRef: systemFileModel
+                                        fileContextMenu: contextMenu
+                                    }
                                     clip: true
-                                    
+
                                     // 键盘事件处理
                                     Keys.onPressed: function(event) {
                                         console.log("systemList: Key pressed:", event.key)
@@ -789,7 +380,9 @@ ApplicationWindow {
                             width: menuScrollView.width
                             height: menuScrollView.height
                             model: currentMenuModel
-                            delegate: treeViewDelegate
+                            delegate: Delegates.TreeDelegate {
+                                rootWindow: root
+                            }
                             clip: true
                             alternatingRows: true
                             
@@ -866,93 +459,30 @@ ApplicationWindow {
                         spacing: Styles.Style.spacing
                         
                         // Comment
-                        Column {
+                        Components.DPropertyField {
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Description")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DTextField {
-                                id: rootCommentField
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                text: currentItem ? currentItem.comment || "" : ""
-                                
-                                onEditingFinished: {
-                                    updateProperty("comment", text)
-                                }
-                                
-                                Keys.onPressed: function(event) {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        updateProperty("comment", text)
-                                        event.accepted = true
-                                    }
-                                }
-                            }
+                            labelText: qsTr("Description")
+                            propertyName: "comment"
+                            fieldValue: currentItem ? currentItem.comment || "" : ""
+                            onValueEdited: function(name, value) { updateProperty(name, value) }
                         }
-                        
+
                         // Comment[zh_CN]
-                        Column {
+                        Components.DPropertyField {
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Description (Chinese)")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DTextField {
-                                id: rootCommentLocalField
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                text: currentItem ? currentItem.commentLocal || "" : ""
-                                
-                                onEditingFinished: {
-                                    updateProperty("commentLocal", text)
-                                }
-                                
-                                Keys.onPressed: function(event) {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        updateProperty("commentLocal", text)
-                                        event.accepted = true
-                                    }
-                                }
-                            }
+                            labelText: qsTr("Description (Chinese)")
+                            propertyName: "commentLocal"
+                            fieldValue: currentItem ? currentItem.commentLocal || "" : ""
+                            onValueEdited: function(name, value) { updateProperty(name, value) }
                         }
-                        
+
                         // Version
-                        Column {
+                        Components.DPropertyField {
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Version")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DTextField {
-                                id: rootVersionField
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                text: currentItem ? currentItem.version || "" : ""
-                                
-                                onEditingFinished: {
-                                    updateProperty("version", text)
-                                }
-                                
-                                Keys.onPressed: function(event) {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        updateProperty("version", text)
-                                        event.accepted = true
-                                    }
-                                }
-                            }
+                            labelText: qsTr("Version")
+                            propertyName: "version"
+                            fieldValue: currentItem ? currentItem.version || "" : ""
+                            onValueEdited: function(name, value) { updateProperty(name, value) }
                         }
                     }
                     
@@ -963,63 +493,21 @@ ApplicationWindow {
                         spacing: Styles.Style.spacing
                         
                         // Name
-                        Column {
+                        Components.DPropertyField {
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Menu Name")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DTextField {
-                                id: menuNameField
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                text: currentItem ? currentItem.name || "" : ""
-                                
-                                onEditingFinished: {
-                                    updateProperty("name", text)
-                                }
-                                
-                                Keys.onPressed: function(event) {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        updateProperty("name", text)
-                                        event.accepted = true
-                                    }
-                                }
-                            }
+                            labelText: qsTr("Menu Name")
+                            propertyName: "name"
+                            fieldValue: currentItem ? currentItem.name || "" : ""
+                            onValueEdited: function(name, value) { updateProperty(name, value) }
                         }
-                        
+
                         // Name[zh_CN]
-                        Column {
+                        Components.DPropertyField {
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Menu Name (Chinese)")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            Components.DTextField {
-                                id: menuNameLocalField
-                                width: parent.width
-                                height: Styles.Style.itemHeight
-                                text: currentItem ? currentItem.nameLocal || "" : ""
-                                
-                                onEditingFinished: {
-                                    updateProperty("nameLocal", text)
-                                }
-                                
-                                Keys.onPressed: function(event) {
-                                    if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                                        updateProperty("nameLocal", text)
-                                        event.accepted = true
-                                    }
-                                }
-                            }
+                            labelText: qsTr("Menu Name (Chinese)")
+                            propertyName: "nameLocal"
+                            fieldValue: currentItem ? currentItem.nameLocal || "" : ""
+                            onValueEdited: function(name, value) { updateProperty(name, value) }
                         }
                         
                         // X-DFM-MenuTypes (checkbox)
@@ -1278,57 +766,47 @@ ApplicationWindow {
                         Column {
                             width: parent.width
                             spacing: 5
-                            
+
                             Text {
                                 text: qsTr("Supported Suffixes")
                                 font: Styles.Style.h3Font
                                 color: Styles.Style.secondaryTextColor
                             }
-                            
+
                             Row {
                                 width: parent.width
                                 height: Styles.Style.itemHeight * 3
                                 spacing: Styles.Style.spacing
-                                
-                                ScrollView {
-                                    width: parent.width - selectButton.width - parent.spacing
-                                    height: parent.height
-                                    clip: true
-                                    
-                                    Components.DTextArea {
-                                        id: suffixTextArea
-                                        width: parent.width
-                                        height: parent.height
-                                        wrapMode: TextArea.Wrap
-                                        placeholderText: qsTr("Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv")
-                                        text: {
-                                            if (currentItem && currentItem.supportSuffix) {
-                                                return currentItem.supportSuffix.join(":")
-                                            }
-                                            return ""
-                                        }
 
-                                        onFocusChanged: {
-                                            if (!focus && currentItem && currentMenuModel && originalItemValues) {
-                                                var suffixes = text.split(":").filter(function(s) { return s.trim() !== "" })
-                                                // 直接更新模型并保存
-                                                var index = currentMenuModel.getIndex(currentItem.id)
-                                                currentMenuModel.updateItem(index, "supportSuffix", suffixes)
-                                                // 更新原始值
-                                                originalItemValues.supportSuffix = suffixes.slice()
-                                                // 保存到文件
-                                                menuManager.saveCurrentModel()
-                                            }
+                                Components.DMultiLinePropertyField {
+                                    id: suffixField
+                                    width: parent.width - selectButton.width - parent.spacing
+                                    fieldHeight: parent.height
+                                    labelText: ""
+                                    placeholderText: qsTr("Enter supported suffixes, separated by colons, e.g.: mp4:avi:mkv")
+                                    fieldValue: {
+                                        if (currentItem && currentItem.supportSuffix) {
+                                            return currentItem.supportSuffix.join(":")
+                                        }
+                                        return ""
+                                    }
+
+                                    onValueEdited: function(value) {
+                                        if (currentItem && currentMenuModel && originalItemValues) {
+                                            var suffixes = Utils.parseSuffixes(value, ":")
+                                            var index = currentMenuModel.getIndex(currentItem.id)
+                                            currentMenuModel.updateItem(index, "supportSuffix", suffixes)
+                                            originalItemValues.supportSuffix = suffixes.slice()
+                                            menuManager.saveCurrentModel()
                                         }
                                     }
                                 }
-                                
+
                                 Components.DButton {
                                     id: selectButton
                                     width: Styles.Style.itemHeight * 2
-                                    // height: parent.height
                                     text: qsTr("Select")
-                                      
+
                                     onClicked: {
                                         fileTypeSelectorDialog.open()
                                     }
@@ -1337,40 +815,19 @@ ApplicationWindow {
                         }
                         
                         // Exec (始终显示)
-                        Column {
+                        Components.DMultiLinePropertyField {
+                            id: execCommandField
                             visible: currentItem !== null
                             width: parent.width
-                            spacing: 5
-                            
-                            Text {
-                                text: qsTr("Executable Command")
-                                font: Styles.Style.h3Font
-                                color: Styles.Style.secondaryTextColor
-                            }
-                            
-                            ScrollView {
-                                width: parent.width
-                                height: Styles.Style.itemHeight * 3
-                                clip: true
-                                
-                                Components.DTextArea {
-                                    id: execCommandField
-                                    width: parent.width
-                                    height: parent.height
-                                    wrapMode: TextArea.Wrap
-                                    text: currentItem ? currentItem.execCommand || "" : ""
+                            labelText: qsTr("Executable Command")
+                            fieldValue: currentItem ? currentItem.execCommand || "" : ""
 
-                                    onFocusChanged: {
-                                        if (!focus && currentItem && currentMenuModel && originalItemValues) {
-                                            // 直接更新模型并保存
-                                            var index = currentMenuModel.getIndex(currentItem.id)
-                                            currentMenuModel.updateItem(index, "execCommand", text)
-                                            // 更新原始值
-                                            originalItemValues.execCommand = text
-                                            // 保存到文件
-                                            menuManager.saveCurrentModel()
-                                        }
-                                    }
+                            onValueEdited: function(value) {
+                                if (currentItem && currentMenuModel && originalItemValues) {
+                                    var index = currentMenuModel.getIndex(currentItem.id)
+                                    currentMenuModel.updateItem(index, "execCommand", value)
+                                    originalItemValues.execCommand = value
+                                    menuManager.saveCurrentModel()
                                 }
                             }
                         }
@@ -1381,213 +838,6 @@ ApplicationWindow {
             
             onWidthChanged: {
                 propertyPanelWidth = width
-            }
-        }
-    }
-    
-    // 文件列表委托
-    Component {
-        id: fileDelegate
-        
-        Rectangle {
-            width: ListView.view ? ListView.view.width : 100
-            height: Styles.Style.itemHeight
-            color: {
-                if (model.filePath === selectedFilePath) {
-                    return Styles.Style.selectColor
-                } else if (mouseArea.containsMouse) {
-                    return Styles.Style.hoverColor
-                } else {
-                    return "transparent"
-                }
-            }
-            radius: Styles.Style.borderRadius
-            
-            // 文件名显示或编辑框
-            Loader {
-                id: fileNameLoader
-                anchors.left: parent.left
-                anchors.leftMargin: Styles.Style.padding
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.right: parent.right
-                anchors.rightMargin: Styles.Style.padding + (model.isSystem ? 50 : 0)
-                
-                // 判断是否应该显示编辑框
-                property bool shouldShowEdit: {
-                    // 新建文件的占位符项（路径为空）
-                    if (isNewFile && model.filePath === "" && editingModelRef) {
-                        return true
-                    }
-                    // 重命名现有文件
-                    if (!isNewFile && editingFilePath === model.filePath) {
-                        return true
-                    }
-                    return false
-                }
-                
-                sourceComponent: shouldShowEdit ? editComponent : textComponent
-            }
-            
-            Component {
-                id: textComponent
-                Text {
-                    text: model.fileName || ""
-                    font.pixelSize: Styles.Style.bodyFont.pixelSize
-                    font.family: Styles.Style.bodyFont.family
-                    font.bold: model.filePath === selectedFilePath
-                    color: Styles.Style.textColor
-                    elide: Text.ElideRight
-                }
-            }
-            
-            Component {
-                id: editComponent
-                TextInput {
-                    id: textInput
-                    text: {
-                        if (isNewFile) {
-                            return ""
-                        } else {
-                            // 移除 .conf 扩展名用于编辑
-                            var fileName = model.fileName || ""
-                            return fileName.replace(/\.conf$/, '')
-                        }
-                    }
-                    font.pixelSize: Styles.Style.bodyFont.pixelSize
-                    font.family: Styles.Style.bodyFont.family
-                    color: Styles.Style.textColor
-                    selectByMouse: true
-                    selectionColor: Styles.Style.primaryColor
-                    
-                    onAccepted: {
-                        finishEditing(text)
-                    }
-                    
-                    onEditingFinished: {
-                        // 修改逻辑：如果不是新建文件，并且（editingFilePath 匹配或为空），则保存
-                        // 这样可以处理点击其他文件时 editingFilePath 被清空的情况
-                        if (!isNewFile && (editingFilePath === model.filePath || editingFilePath === "")) {
-                            // 只有当文本不为空时才保存
-                            if (text.trim() !== "") {
-                                finishEditing(text)
-                            }
-                        }
-                    }
-                    
-                    Keys.onPressed: function(event) {
-                        if (event.key === Qt.Key_Return || event.key === Qt.Key_Enter) {
-                            event.accepted = true
-                            finishEditing(text)
-                        } else if (event.key === Qt.Key_Escape) {
-                            event.accepted = true
-                            cancelEditing()
-                        }
-                    }
-                    
-                    onFocusChanged: {
-                        if (!focus && (fileNameLoader.shouldShowEdit)) {
-                            console.log("TextInput focus lost, finishing edit")
-                            finishEditing(text)
-                        }
-                    }
-                    
-                    Component.onCompleted: {
-                        forceActiveFocus()
-                        selectAll()
-                    }
-                }
-            }
-            
-            Text {
-                anchors.right: parent.right
-                anchors.rightMargin: Styles.Style.padding
-                anchors.verticalCenter: parent.verticalCenter
-                text: model.isSystem ? qsTr("System") : ""
-                font: Styles.Style.tagFont
-                color: Styles.Style.systemTagColor
-                visible: model.isSystem
-            }
-            
-            MouseArea {
-                id: mouseArea
-                // 根据文件路径判断是用户文件还是系统文件
-                property var currentModel: model.filePath && model.filePath.indexOf("/.local/share/") !== -1 ? userFileModel : 
-                                          model.filePath && model.filePath.indexOf("/usr/share/") !== -1 ? systemFileModel : null
-                anchors.fill: parent
-                hoverEnabled: true
-                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                // 禁用点击，让Loader处理
-                enabled: !fileNameLoader.shouldShowEdit
-                
-                onDoubleClicked: function(mouse) {
-                    if (mouse.button === Qt.LeftButton && model.filePath !== "") {
-                        console.log("Double-clicked on file:", model.filePath)
-                        console.log("currentModel:", currentModel, "typeof:", typeof currentModel)
-                        editingFilePath = model.filePath
-                        isNewFile = false
-                        editingModelRef = currentModel
-                        console.log("Set editingModelRef to:", editingModelRef)
-                    }
-                }
-                
-                onClicked: function(mouse) {
-                    if (mouse.button === Qt.LeftButton) {
-                        // 如果有其他文件正在编辑，先结束编辑
-                        if (editingFilePath !== "" && editingFilePath !== model.filePath) {
-                            console.log("Another file is being edited, ending edit first")
-                            // 清空编辑状态，这会导致 Loader 切换回 textComponent
-                            // TextInput 的 onEditingFinished 会被触发，但由于 editingFilePath 已被清空
-                            // 我们需要修改 onEditingFinished 的逻辑来处理这种情况
-                            editingFilePath = ""
-                            isNewFile = false
-                            editingModelRef = null
-                        }
-                        selectedFilePath = model.filePath || ""
-                        menuManager.setCurrentConfig(model.filePath || "")
-                        contextMenu.filePath = model.filePath || ""
-                    } else if (mouse.button === Qt.RightButton) {
-                        // 如果有其他文件正在编辑，先结束编辑
-                        if (editingFilePath !== "" && editingFilePath !== model.filePath) {
-                            console.log("Another file is being edited, ending edit first for right-click")
-                            editingFilePath = ""
-                            isNewFile = false
-                            editingModelRef = null
-                        }
-                        contextMenu.filePath = model.filePath || ""
-                        contextMenu.modelRef = currentModel
-                        console.log("Right-click: setting contextMenu.modelRef to", currentModel, "typeof:", typeof currentModel)
-                        contextMenu.popup()
-                    }
-                }
-            }
-            
-            // 完成编辑的函数
-            function finishEditing(newName) {
-                var trimmedName = newName.trim()
-                
-                if (trimmedName !== "") {
-                    if (isNewFile && model.filePath === "" && editingModelRef && editingModelRef.createFile) {
-                        // 创建新文件
-                        editingModelRef.createFile(trimmedName)
-                    } else if (!isNewFile && editingFilePath !== "" && editingModelRef && editingModelRef.renameFile) {
-                        // 重命名文件
-                        editingModelRef.renameFile(editingFilePath, trimmedName)
-                    }
-                }
-                
-                cancelEditing()
-            }
-            
-            // 取消编辑的函数
-            function cancelEditing() {
-                if (isNewFile && model.filePath === "" && editingModelRef && editingModelRef.cancelNewFile) {
-                    // 取消新建文件，移除占位符
-                    editingModelRef.cancelNewFile()
-                }
-                
-                editingFilePath = ""
-                isNewFile = false
-                editingModelRef = null
             }
         }
     }
@@ -1715,7 +965,7 @@ ApplicationWindow {
     function forceSaveExecCommand() {
         if (execCommandField && currentItem && currentMenuModel && originalItemValues) {
             // 检查字段内容是否与模型中的值不同
-            var currentText = execCommandField.text || ""
+            var currentText = execCommandField.currentText || ""
             var modelText = currentItem.execCommand || ""
             if (currentText !== modelText) {
                 var index = currentMenuModel.getIndex(currentItem.id)
@@ -1765,17 +1015,7 @@ ApplicationWindow {
 
         // 比较新旧值
         if (Array.isArray(newValue)) {
-            // 数组比较
-            if (newValue.length !== oldValue.length) {
-                isChanged = true
-            } else {
-                for (var i = 0; i < newValue.length; i++) {
-                    if (newValue[i] !== oldValue[i]) {
-                        isChanged = true
-                        break
-                    }
-                }
-            }
+            isChanged = !Utils.arraysEqual(newValue, oldValue)
         } else {
             // 普通值比较
             isChanged = (newValue !== oldValue)
@@ -1808,7 +1048,7 @@ ApplicationWindow {
 
     // 辅助函数：判断文件是否是系统文件
     function isSystemFile(filePath) {
-        return filePath.indexOf("/usr/share/") !== -1
+        return Utils.isSystemFile(filePath)
     }
 
     // 视图状态保存
