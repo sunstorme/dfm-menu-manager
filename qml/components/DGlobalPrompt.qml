@@ -31,7 +31,7 @@ Rectangle {
     border.color: type === "warning" ? "#FFB74D" : "#64B5F6"
     border.width: 1
     
-    radius: borderRadius
+    radius: height / 2
  
     width: Math.min(contentRow.implicitWidth + padding * 2, maxWidth)
     height: Math.max(contentRow.implicitHeight + padding * 2, closeButtonSize + padding * 2)

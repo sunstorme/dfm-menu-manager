@@ -722,6 +722,19 @@ ApplicationWindow {
             SplitView.preferredWidth: menuEditorWidth
             color: Styles.Style.backgroundColor
             
+            // 空配置文件提示
+            Text {
+                anchors.centerIn: parent
+                text: selectedFilePath === "" ? qsTr("Please select a configuration file") :
+                    currentMenuModel === null ? qsTr("Loading configuration...") : ""
+                font: Styles.Style.bodyFont
+                color: Styles.Style.secondaryTextColor
+                // 只在未选择配置文件时显示提示
+                // 当配置文件为空时，TreeView 应该显示，让用户可以右键添加项目
+                visible: selectedFilePath === ""
+                z: 1
+            }
+
             Column {
                 anchors.fill: parent
                 anchors.margins: Styles.Style.padding
@@ -746,20 +759,7 @@ ApplicationWindow {
                     width: parent.width
                     height: parent.height - Styles.Style.toolbarHeight
                     color: Styles.Style.backgroundColor
-                    
-                    // 空配置文件提示
-                    Text {
-                        anchors.centerIn: parent
-                        text: selectedFilePath === "" ? qsTr("Please select a configuration file") :
-                               currentMenuModel === null ? qsTr("Loading configuration...") : ""
-                            font: Styles.Style.bodyFont
-                        color: Styles.Style.secondaryTextColor
-                        // 只在未选择配置文件时显示提示
-                        // 当配置文件为空时，TreeView 应该显示，让用户可以右键添加项目
-                        visible: selectedFilePath === ""
-                        z: 1
-                    }
-                    
+                          
                     // 背景区域右键菜单（用于空配置文件）
                     MouseArea {
                         anchors.fill: parent
@@ -832,6 +832,15 @@ ApplicationWindow {
             SplitView.preferredWidth: propertyPanelWidth
             color: Styles.Style.backgroundColor
             
+            // 未选中任何项时的提示
+            Text {
+                visible: currentItem === null
+                anchors.centerIn: parent
+                text: qsTr("Please select a menu item")
+                font: Styles.Style.bodyFont
+                color: Styles.Style.secondaryTextColor
+            }
+
             ScrollView {
                 anchors.fill: parent
                 anchors.margins: Styles.Style.padding
@@ -1368,14 +1377,6 @@ ApplicationWindow {
                     }
                 }
                 
-                // 未选中任何项时的提示
-                Text {
-                    visible: currentItem === null
-                    anchors.centerIn: parent
-                    text: qsTr("Please select a menu item")
-                    font: Styles.Style.bodyFont
-                    color: Styles.Style.secondaryTextColor
-                }
             }
             
             onWidthChanged: {
