@@ -252,7 +252,7 @@ ApplicationWindow {
                     Text {
                         anchors.left: parent.left
                         text: qsTr("Menu Structure Editor")
-                        font: Styles.Style.h1Font
+                        font: Styles.Style.h2Font
                         color: Styles.Style.textColor
                     }
                 }
@@ -355,7 +355,7 @@ ApplicationWindow {
                     id: propertyTitle
                     Layout.fillWidth: true
                     text: currentItem ? qsTr("Property Editor: ") + (currentItem.nameLocal || currentItem.name || "") : qsTr("Property Editor")
-                    font: Styles.Style.h1Font
+                    font: Styles.Style.h2Font
                     color: Styles.Style.textColor
                 }
 
@@ -710,29 +710,80 @@ ApplicationWindow {
                                 }
                             }
                             
-                            // Exec (始终显示)
-                            Components.DMultiLinePropertyField {
-                                id: execCommandField
+                            // Exec (始终显示，带文件选择按钮)
+                            Column {
                                 visible: currentItem !== null
                                 width: parent.width
-                                labelText: qsTr("Executable Command")
-                                fieldValue: currentItem ? currentItem.execCommand || "" : ""
+                                spacing: 5
 
-                                onValueEdited: function(value) {
-                                    if (currentItem && currentMenuModel && originalItemValues) {
-                                        var index = currentMenuModel.getIndex(currentItem.id)
-                                        currentMenuModel.updateItem(index, "execCommand", value)
-                                        originalItemValues.execCommand = value
-                                        menuManager.saveCurrentModel()
+                                Text {
+                                    text: qsTr("Executable Command")
+                                    font: Styles.Style.h3Font
+                                    color: Styles.Style.secondaryTextColor
+                                }
+
+                                Row {
+                                    width: parent.width
+                                    height: Styles.Style.itemHeight * 3
+                                    spacing: Styles.Style.spacing
+
+                                    Components.DMultiLinePropertyField {
+                                        id: execCommandField
+                                        width: parent.width - execSelectFileButton.width - parent.spacing
+                                        fieldHeight: parent.height
+                                        labelText: ""
+                                        placeholderText: qsTr("Enter executable command")
+                                        fieldValue: currentItem ? currentItem.execCommand || "" : ""
+
+                                        onValueEdited: function(value) {
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                var index = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(index, "execCommand", value)
+                                                originalItemValues.execCommand = value
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
+                                    }
+
+                                    Components.DButton {
+                                        id: execSelectFileButton
+                                        width: Styles.Style.itemHeight * 2
+                                        text: qsTr("Select File")
+
+                                        onClicked: {
+                                            var filters = [
+                                                qsTr("All Files") + " (*)",
+                                                qsTr("Executable Files") + " (*.sh *.py *.pl *.rb *.js)",
+                                                qsTr("Bash Scripts") + " (*.sh)"
+                                            ]
+                                            var filePath = fileDialogHelper.openFile(
+                                                qsTr("Select Executable File"),
+                                                filters,
+                                                "execCommand"
+                                            )
+                                            if (filePath === "") return
+
+                                            var currentText = execCommandField.currentText
+                                            var newText = currentText.length > 0
+                                                ? currentText + " " + filePath
+                                                : filePath
+
+                                            if (currentItem && currentMenuModel && originalItemValues) {
+                                                var idx = currentMenuModel.getIndex(currentItem.id)
+                                                currentMenuModel.updateItem(idx, "execCommand", newText)
+                                                originalItemValues.execCommand = newText
+                                                menuManager.saveCurrentModel()
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                    
+
                 }
             }
-            
+
             onWidthChanged: {
                 propertyPanelWidth = width
             }
@@ -901,16 +952,24 @@ ApplicationWindow {
     
     // 辅助函数：更新属性并保存（带脏检查）
     function updateProperty(propertyName, newValue) {
-        if (!currentItem || !currentMenuModel || !originalItemValues) {
-            return
-        }
+        if (!currentMenuModel) return
+
+        // 确定目标项：优先用 currentItem，fallback 到 rootConfigData
+        var targetItem = currentItem || rootConfigData
+        if (!targetItem) return
 
         // 在更新其他属性之前，强制保存 execCommandField 的编辑内容
-        if (propertyName !== "execCommand") {
+        if (currentItem && propertyName !== "execCommand") {
             forceSaveExecCommand()
         }
 
-        var oldValue = originalItemValues[propertyName]
+        // 获取旧值：菜单项从 originalItemValues，根配置从 rootConfigData
+        var oldValue
+        if (currentItem && originalItemValues) {
+            oldValue = originalItemValues[propertyName]
+        } else {
+            oldValue = targetItem[propertyName]
+        }
         var isChanged = false
 
         // 比较新旧值
@@ -923,10 +982,12 @@ ApplicationWindow {
 
         if (isChanged) {
             if (debugLogging) console.log("Property", propertyName, "changed from", oldValue, "to", newValue)
-            var index = currentMenuModel.getIndex(currentItem.id)
+            var index = currentMenuModel.getIndex(targetItem.id)
             currentMenuModel.updateItem(index, propertyName, newValue)
             // 更新原始值
-            originalItemValues[propertyName] = Array.isArray(newValue) ? newValue.slice() : newValue
+            if (currentItem && originalItemValues) {
+                originalItemValues[propertyName] = Array.isArray(newValue) ? newValue.slice() : newValue
+            }
             // 保存到文件
             menuManager.saveCurrentModel()
         } else {

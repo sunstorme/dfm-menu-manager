@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <QGuiApplication>
+#include <QApplication>
 #include <QQmlApplicationEngine>
 #include "utils/constants.h"
 #include <QQmlContext>
@@ -28,6 +28,7 @@
 #include "models/menu_tree_model.h"
 #include "models/menu_file_model.h"
 #include "utils/window_manager.h"
+#include "utils/file_dialog_helper.h"
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
     QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
 
     LOG_DEBUG("Creating QGuiApplication...");
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
     app.setApplicationName("dfm-menu-manager");
     app.setApplicationVersion(Constants::Defaults::DEFAULT_APP_VERSION);
     app.setOrganizationName("deepin");
@@ -103,6 +104,11 @@ int main(int argc, char *argv[])
     FileTypeManager fileTypeManager;
     LOG_DEBUG("FileTypeManager created");
 
+    // 创建文件对话框辅助器
+    LOG_DEBUG("Creating FileDialogHelper...");
+    FileDialogHelper fileDialogHelper;
+    LOG_DEBUG("FileDialogHelper created");
+
     // QML引擎
     LOG_DEBUG("Creating QML engine...");
     QQmlApplicationEngine engine;
@@ -115,6 +121,7 @@ int main(int argc, char *argv[])
     LOG_DEBUG("Setting context properties...");
     engine.rootContext()->setContextProperty("menuManager", &menuManager);
     engine.rootContext()->setContextProperty("fileTypeManager", &fileTypeManager);
+    engine.rootContext()->setContextProperty("fileDialogHelper", &fileDialogHelper);
 
     // 加载主QML文件
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

@@ -168,12 +168,12 @@
         <translation type="vanished">Add Child Menu</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="792"/>
+        <location filename="../qml/main.qml" line="843"/>
         <source>Rename</source>
         <translation>Rename</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="805"/>
+        <location filename="../qml/main.qml" line="856"/>
         <source>Delete</source>
         <translation>Delete</translation>
     </message>
@@ -289,6 +289,36 @@
         <translation>Supported Suffixes</translation>
     </message>
     <message>
+        <location filename="../qml/main.qml" line="735"/>
+        <source>Enter executable command</source>
+        <translation>Enter executable command</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="751"/>
+        <source>Select File</source>
+        <translation>Select File</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="755"/>
+        <source>All Files</source>
+        <translation>All Files</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="756"/>
+        <source>Executable Files</source>
+        <translation>Executable Files</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="757"/>
+        <source>Bash Scripts</source>
+        <translation>Bash Scripts</translation>
+    </message>
+    <message>
+        <location filename="../qml/main.qml" line="760"/>
+        <source>Select Executable File</source>
+        <translation>Select Executable File</translation>
+    </message>
+    <message>
         <location filename="../qml/main.qml" line="458"/>
         <source>Position Number</source>
         <translation>Position Number</translation>
@@ -337,7 +367,7 @@
         <translation>Select</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="718"/>
+        <location filename="../qml/main.qml" line="720"/>
         <source>Executable Command</source>
         <translation>Executable Command</translation>
     </message>
@@ -351,22 +381,22 @@
         <translation type="vanished">System</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="767"/>
+        <location filename="../qml/main.qml" line="818"/>
         <source>Refresh List</source>
         <translation>Refresh List</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="778"/>
+        <location filename="../qml/main.qml" line="829"/>
         <source>New File</source>
         <translation>New File</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="820"/>
+        <location filename="../qml/main.qml" line="871"/>
         <source>Open Containing Folder</source>
         <translation>Open Containing Folder</translation>
     </message>
     <message>
-        <location filename="../qml/main.qml" line="838"/>
+        <location filename="../qml/main.qml" line="889"/>
         <source>Open File</source>
         <translation>Open File</translation>
     </message>

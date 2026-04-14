@@ -64,3 +64,4 @@ Thumbs.db
 obj-x86_64-linux-gnu/*
 CMakeLists.txt.user
 demo/*
+qt_translation_config.json
